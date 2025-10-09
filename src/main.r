@@ -14,7 +14,7 @@ datTrackSpp <- plantTracker::trackSpp(
     buff = .05,          # Buffer distance for matching locations
     buffGenet = .005,    # Buffer for determining genets
     clonal = data.frame(
-        "Species" = c("your_species_name"),  # Replace with your species
+        "Species" = c("Hardground","Island","Macroalgae","Microfilm","Reef","Sand","Seagrass","Slope"),  # Replace with your species
         "clonal" = c(FALSE)                  # TRUE if species is clonal
     ),
     aggByGenet = TRUE,   # Aggregate by genetic individual

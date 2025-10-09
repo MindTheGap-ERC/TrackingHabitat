@@ -16,10 +16,14 @@ for (filename in year_lookup$filename) {
                          layer = filename,
                          quiet = TRUE)
   
+  cat("\nProcessing file:", filename, "\n")
+  cat("Columns:", names(shapeNow), "\n")
+  cat("Number of rows:", nrow(shapeNow), "\n")
   # Standardize columns
   shapeNow <- sf::st_sf(
     geometry = sf::st_geometry(shapeNow),
     Site = "Joulters",
+    Facies = shapeNow$Class_name, 
     Quad = ifelse(grepl("vintage", filename), "vintage", "modern"),
     Year = year_lookup$year[match(filename, year_lookup$filename)],
     type = "polygon"
