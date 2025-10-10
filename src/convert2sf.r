@@ -2,8 +2,8 @@
 quadNames <- list.files("data", pattern = "\\.shp$")
 
 year_lookup <- data.frame(
-  filename = c("export_shape_vintage_out_joulters", "export_shape_modern_out_joulters"),
-  year = c(1949, 2019)  # Replace these years with your actual years
+  filename = c("vintage", "modern"),
+  year = c(1945, 2019)  # Replace these years with your actual years
 )
 # Initialize an empty list to store the processed shapefiles
 shape_list <- list()

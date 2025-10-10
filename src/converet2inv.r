@@ -1,6 +1,6 @@
 # Create inventory for Joulters data
 quadInv_DF <- data.frame(
-    "vintage" = c(1949),
+    "vintage" = c(1945),
     "modern" = c(2019)
 )
 
