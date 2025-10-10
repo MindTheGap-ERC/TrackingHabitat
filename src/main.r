@@ -1,3 +1,12 @@
+library(plantTracker)
+library(sf)
+
+dat <- readRDS("results/combined_shapes.rds")
+print(sum(!st_is_valid(dat)))
+dat <- st_make_valid(dat)
+print(sum(!st_is_valid(dat)))
+quadInv_list <- readRDS("results/quadInv_list.rds")
+
 # First check the data format
 plantTracker::checkDat(dat = dat, 
                       inv = quadInv_list,
@@ -5,6 +14,7 @@ plantTracker::checkDat(dat = dat,
                       site = "Site", 
                       quad = "Quad",
                       year = "Year")
+
 
 # Track changes between vintage and modern data
 datTrackSpp <- plantTracker::trackSpp(
