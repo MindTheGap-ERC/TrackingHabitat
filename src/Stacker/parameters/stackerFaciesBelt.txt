@@ -1,0 +1,56 @@
+faciesBelts
+100								# grid size x dimension
+100								# grid size y dimension
+0.1								# grid cell spacing, x dimension, km
+0.1								# grid cell spacing, y dimension, km
+
+1.000								# model duration, My
+0.001								# model time step, My
+parameters/initialTopographyShallowRampSmoothedNoise.txt		# initial topography filename
+20								# subdience rate, m per My
+parameters/sealevelCurveP1_0.300A1_5.0P2_0.082A2_2.0.txt	# sea-level curve filename
+1.0		# Tidal range, in meters. Facies 1 is assumed in random models to be intertidal
+5			# number of facies elements
+
+1			# facies element number/code (useful only for readability)
+20.0			# maximum deposition rate, m/My
+1 0.498 0.314		# RGB colour code coral pink
+
+2			# facies element number/code (useful only for readability)
+20.0			# maximum deposition rate, m/My
+1 1 0			# RGB colour code
+
+3			# facies element number/code (useful only for readability)
+20.0			# maximum deposition rate, m/My
+0 0.8 0.5		# RGB colour code
+
+4			# facies element number/code (useful only for readability)
+20.0			# maximum deposition rate, m/My
+0 0.5 0.8		# RGB colour code
+
+5			# facies element number/code (useful only for readability)
+20.0			# maximum deposition rate, m/My
+0.3 0.3 0.3		# RGB colour code
+
+FaciesBelts		# flag indicating the basic nature of the model - deterministic requires water depth for each facies
+Constant		# flag indicating production rate - water depth model
+
+1			# facies element number/code (useful only for readability)
+0.01			# minimum water depth, avoid zero because might lead to facies recorded but zero thickness
+2.5			# maximum water depth
+
+2			# facies element number/code (useful only for readability)
+2.5			# minimum water depth
+5.0			# maximum water depth
+
+3			# facies element number/code (useful only for readability)
+5.0			# minimum water depth
+7.5			# maximum water depth
+
+4			# facies element number/code (useful only for readability)
+7.5			# minimum water depth
+10.0			# maximum water depth
+
+5			# facies element number/code (useful only for readability)
+10.0			# minimum water depth
+100.0			# maximum water depth
