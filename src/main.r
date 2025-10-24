@@ -33,5 +33,31 @@ datTrackSpp <- plantTracker::trackSpp(
     flagSuspects = TRUE
 )
 
+datTrackSppsg <- plantTracker::trackSpp(
+    dat = dat, 
+    inv = quadInv_list,
+    dorm = 80,           
+    buff = 10,      
+    buffGenet = 10,    
+    clonal = data.frame(
+        "Species" = c("Seagrass"),  
+        "clonal" = TRUE
+    ),
+    aggByGenet = TRUE,
+    printMessages = TRUE,
+    flagSuspects = TRUE
+)
 
-st_write(datTrackSpp, "results/tracked_seagrass_species.geojson", driver = "GeoJSON", delete_dsn=TRUE)
+drawQuadMap(
+    dat = datTrackSppsg,
+    type = "bytrackID",
+    addBuffer = FALSE,
+    site = "Site",
+    quad = "Quad",
+    trackedID = "trackID",
+    plotTitle = "Tracked Species Map - Joulters",
+    savePlot = TRUE,
+    fileName = "results/tracked_species_map_Joulters.png"
+)
+
+st_write(datTrackSpp, "results/tracked_species.geojson", driver = "GeoJSON", delete_dsn=TRUE)

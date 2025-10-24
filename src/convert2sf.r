@@ -1,17 +1,13 @@
-# List only .shp files
 quadNames <- list.files("data/data_seagrass", pattern = "\\.shp$")
 
 year_lookup <- data.frame(
   filename = c("vintage_seagrass", "modern_seagrass"),
-  year = c(1945, 2019)  # Replace these years with your actual years
+  year = c(1945L, 2019L)  
 )
-# Initialize an empty list to store the processed shapefiles
 shape_list <- list()
 counter <- 1
 
-# now we'll loop through the quadrat folders to download the data
 for (filename in year_lookup$filename) {
-  # Read shapefile
   shapeNow <- sf::st_read(dsn = "data/data_seagrass", 
                          layer = filename,
                          quiet = TRUE)
@@ -19,34 +15,25 @@ for (filename in year_lookup$filename) {
   cat("\nProcessing file:", filename, "\n")
   cat("Columns:", names(shapeNow), "\n")
   cat("Number of rows:", nrow(shapeNow), "\n")
-  # Standardize columns
   shapeNow <- sf::st_sf(
     geometry = sf::st_geometry(shapeNow),
     Site = "Joulters",
     Facies = shapeNow$Class_name, 
-    Quad = "Seagrass",
+    Quad = "seagrass",
     Year = year_lookup$year[match(filename, year_lookup$filename)],
     type = "polygon"
   )
   
-  # Store in list
   shape_list[[counter]] <- shapeNow
   counter <- counter + 1
 }
 
-# Combine all shapefiles
 dat <- do.call(rbind, shape_list)
 
-# Create results directory if it doesn't exist
 dir.create("results", showWarnings = FALSE)
 
-# Save results in multiple formats
-# As shapefile
 sf::st_write(dat, "results/combined_seagrass_shapes.shp", append=FALSE)
 
-# As R data file (preserves all data types)
 saveRDS(dat, "results/combined_seagrass_shapes.rds")
 
-# As CSV (without spatial information)
 write.csv(sf::st_drop_geometry(dat), "results/combined_seagrass_shapes.csv", row.names = FALSE)
-# Now, all of the spatial data are in one sf data frame with consistent columns!

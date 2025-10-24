@@ -1,11 +1,11 @@
 # GMT 6 Session common arguments shelf
 BEGIN GMT 6.7.0
-B	pya2g2pxa45g45+tPolar scatter
+B	afWSen+tSeagrass migration distances and directions (1945-2019)
 J	P
 JN	N180.0/15c
 JP	P15c
 JX	X12c
-R	0/360/0/10
+R	0/360/0/1673.246441866027
 Y	4.666666666666667c
-@L	3
+@L	2
 END

@@ -45,11 +45,11 @@ function calculate_distances(data)
     n = length(data[:,1])
     distances = Float64[]
     for i in 1:n
-        if ismissing(data[i, "1945.0"]) || ismissing(data[i, "2019.0"])
+        if ismissing(data[i, "1945"]) || ismissing(data[i, "2019"])
             continue
         else
-        point1 = data[i, "1945.0"]
-        point2 = data[i, "2019.0"]
+        point1 = data[i, "1945"]
+        point2 = data[i, "2019"]
         dist = euclidean(point1, point2)
         push!(distances, dist)
 
@@ -91,14 +91,13 @@ end
 data = hcat(directions, distances)
 
 max_dist = maximum(distances)  
-
-GMT.scatter(
+fig = GMT.scatter(
     distances, 
     directions, 
     limits = (0,360,0,max_dist), 
     proj = :Polar,
     title = "Seagrass migration distances and directions (1945-2019)",
-    show = true
+    show = false
 )
 
 

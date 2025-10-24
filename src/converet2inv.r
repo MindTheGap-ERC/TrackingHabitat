@@ -1,6 +1,6 @@
 # Create inventory for Joulters data
 quadInv_DF <- data.frame(
-    "Seagrass" = c(1945,2019)
+    "seagrass" = c(1945L,2019L)
 )
 
 # Convert to list format
@@ -10,3 +10,4 @@ quadInv_list <- as.list(quadInv_DF)
 quadInv_list <- lapply(X = quadInv_list, FUN = function(x) x[is.na(x) == FALSE])
 
 saveRDS(quadInv_list, "results/Inv_seagrass.rds")
+
