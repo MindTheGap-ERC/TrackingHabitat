@@ -8,7 +8,6 @@ using CairoMakie
 const PATH = "results/tracked_species.geojson"
 data = GeoJSON.read(PATH)
 
-# Second to select the sepcies I want
 
 
 # Third filter out repeated trackedIDs in 1945
@@ -38,23 +37,30 @@ end
 TargetID = "Seagrass_1945_122" # I take this as an exmaple
 target_feature = filter(f -> f.properties["trackID"] == TargetID, vintage_final_features.features)
 
-# obtain the points of the polygon and get the bounding box
-function calculate_coords(features, trackedID)
-    geom_type = feature.geometry.type
-    coords = feature.geometry.coordinates
-    if geom_type == "Polygon"
-        return coords
-    elseif geom_type == "MultiPolygon"
-        all_rings = []
-        for polygon in coords
-            append!(all_rings, polygon)
+# obtain the points of the polygon and get the bounding box 
+# feature collection: f -> feature -> geometry -> coordinates -> [1]
+# feature : f -> geometry -> coordinates -> [1]
+function calculate_coords(feature, trackedID)
+    for f in feature
+        geomtype = typeof(f.geometry)
+        println(geomtype)
+        if f.properties["trackID"] == trackedID && isa(f.geometry, Polygon) == true
+            return f.geometry.coordinates[1]
+        elseif f.properties["trackID"] == trackedID && isa(f.geometry, MultiPolygon) == true
+            polys = []
+            for polygon in f.geometry.coordinates
+                append!(polys, polygon[1])
+                println(polygon[1])
+            end
+            return polys
+        else
+            println("error")
         end
-        return all_rings
-    else
-        error("Unsupported geometry type: $geom_type")
     end
 end
-coords = calculate_coords(vintage_final_features, TargetID)
+
+coords = calculate_coords(target_feature, TargetID)
+
 points = [Meshes.Point(c[1], c[2]) for c in coords]
 bbox = Meshes.boundingbox(points)
 min_x, min_y = Meshes.coordinates(bbox.min)
