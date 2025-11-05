@@ -5,6 +5,7 @@ function stacker
 
     clear all;
     
+    
     gui.main = 0;
     gui.f1 = 0;
     

@@ -1,0 +1,77 @@
+FaciesMosaic	# Model name
+100		# total grid cells x dimension						# grid size x dimension
+100		# total grid cells y dimension
+0.1		# grid cell spacing, x dimension, km, so 0.1 spacing for 100 cells means 10km grid dimension
+0.1		# grid cell spacing, y dimension, km
+
+1.000								# model duration, My
+0.001								# model time step, My
+parameters/initialTopographyShallowRampSmoothedNoise.txt	# initial topography filename
+20.0								# subsidence rate, m per My
+parameters/sealevelCurveConstant0m.txt				# sea-level curve filename
+1.0		# Tidal range, in meters. Facies 1 is assumed in random models to be intertidal
+5		# Number of facies in the model
+
+1		# facies element number/code (useful only for readability)
+500.0		# maximum deposition rate, m/My
+1 0.498 0.314	# RGB colour code coral pink
+
+2		# facies element number/code (useful only for readability)
+100.0		# maximum deposition rate, m/My
+1 1 0		# RGB colour code, yellow
+
+3		# facies element number/code (useful only for readability)
+50		# maximum deposition rate, m/My
+0 0.8 0.5	# RGB colour code, bluish green
+
+4		# facies element number/code (useful only for readability)
+0.0		# maximum deposition rate, m/My
+0 0.5 0.8	# RGB colour code, greenish blue
+
+5		# facies element number/code (useful only for readability)
+0.0		# maximum deposition rate, m/My
+0.3 0.3 0.3	# RGB colour code, darkish grey
+
+FaciesMosaic	# flag indicating the basic nature of the model eg facies belts or facies mosaic
+Constant	# flag indicating production rate - water depth model
+3		# number of facies mosaic elements
+500		# number of xy points in each mosaic element
+RandomWalk	# specify facies mosaic elements migration - StraightLines, RandomWalk, DeepestNeighbour, SteepestDescent
+
+1		# facies element number/code (useful only for readability)
+1		# facies element facies code, grey
+-4 4		# XY maxiumum migration rate km per iteration
+5 1.5		# Initial xy coordinate of facies element centroid, in km
+2.4		# Mosaic element radius in km
+parameters/faciesMosaicCloud1.mat	# filename for facies mosaic element point cloud coordinates
+
+2		# facies element number/code (useful only for readability)
+2		# facies element facies code, yellow
+3 -3	# XY maxiumum migration rate km per iteration
+5 3		# Initial xy coordinate of facies element centroid, in km
+2.7		# Mosaic element radius in km
+parameters/faciesMosaicCloud2.mat	# filename for facies mosaic element point cloud coordinates
+
+3		# facies element number/code (useful only for readability)
+3		# facies element facies code, red
+-2 2	# XY maxiumum migration rate km per iteration
+5.0 5.0		# Initial xy coordinate of facies element centroid, in km
+2.45		# Mosaic element radius in km
+parameters/faciesMosaicCloud3.mat	# filename for facies mosaic element point cloud coordinates
+
+4		# facies element number/code (useful only for readability)
+3		# facies element facies code
+0.5 0.5		# XY maxiumum migration rate km per iteration
+7.5 2.5		# Initial xy coordinate of facies element centroid, in km
+2.2		# Mosaic element radius in km
+parameters/faciesMosaicCloud4.mat	# filename for facies mosaic element point cloud coordinates
+
+5		# facies element number/code (useful only for readability)
+4		# facies element facies code
+-0.5 0.5	# XY maxiumum migration rate km per iteration
+7.5 7.5 	# Initial xy coordinate of facies element centroid, in km
+2.75		# Mosaic element radius in km
+parameters/faciesMosaicCloud5.mat	# filename for facies mosaic element point cloud coordinates
+
+
+
