@@ -2,8 +2,8 @@ using GeoJSON
 using GeoInterface
 using Images
 using Meshes
-using Meshes: Polygon as MeshPolygon
 using CairoMakie
+using MAT
 # First to read the data
 const PATH = "results/tracked_species.geojson"
 data = GeoJSON.read(PATH)
@@ -34,7 +34,7 @@ for f in sorted_features
 end
 
 
-TargetID = "Seagrass_1945_122" # I take this as an exmaple
+TargetID = "Seagrass_1945_116" # I take this as an exmaple
 target_feature = filter(f -> f.properties["trackID"] == TargetID, vintage_final_features.features)
 
 # obtain the points of the polygon and get the bounding box 
@@ -44,13 +44,13 @@ function calculate_coords(feature, trackedID)
     for f in feature
         geomtype = typeof(f.geometry)
         println(geomtype)
-        if f.properties["trackID"] == trackedID && isa(f.geometry, Polygon) == true
+        if f.properties["trackID"] == trackedID && isa(f.geometry, GeoInterface.Polygon) == true
             return f.geometry.coordinates[1]
-        elseif f.properties["trackID"] == trackedID && isa(f.geometry, MultiPolygon) == true
-            polys = []
+        elseif f.properties["trackID"] == trackedID && isa(f.geometry, GeoInterface.MultiPolygon) == true
+            polys = Vector{Float64}[]
             for polygon in f.geometry.coordinates
                 append!(polys, polygon[1])
-                println(polygon[1])
+                
             end
             return polys
         else
@@ -65,7 +65,7 @@ points = [Meshes.Point(c[1], c[2]) for c in coords]
 bbox = Meshes.boundingbox(points)
 min_x, min_y = Meshes.coordinates(bbox.min)
 max_x, max_y = Meshes.coordinates(bbox.max)
-pixel_size = 10.0 
+pixel_size = 100.0
 
 #ray casting to tell whether the point is inside the polygon
 function point_in_polygon(x::Float64, y::Float64, polygon::Vector{Vector{Float64}})
@@ -93,9 +93,6 @@ function rasterize_feature(coords::Vector{Vector{Float64}}, pixel_size::Float64,
     width = ceil(Int, (max_x - min_x) / pixel_size)
     height = ceil(Int, (max_y - min_y) / pixel_size)
     
-    println("Raster dimensions: $width x $height pixels")
-    println("Bbox: ($min_x, $min_y) to ($max_x, $max_y)")
-    
     matrix = falses(height, width)
     
     for row in 1:height
@@ -111,4 +108,37 @@ function rasterize_feature(coords::Vector{Vector{Float64}}, pixel_size::Float64,
 end
 
 # Rasterize
-matrix, bbox_tuple = rasterize_feature(coords, pixel_size, bbox)
+matrix, bboxarray = rasterize_feature(coords, pixel_size, bbox)
+
+#visualize the rasterized matrix
+fig0 = Figure(resolution = (800, 600))
+ax0 = CairoMakie.Axis(fig0[1, 1])
+heatmap!(ax0, matrix)
+fig0
+
+# normalize the matrix to -1 and 1
+function normalize_matrix(matrix)
+    Pointcloud = Vector{Float64}[]
+    scaling = maximum(size(matrix))
+    for i in 1:size(matrix, 1)
+        for j in 1:size(matrix, 2)
+            if matrix[i, j] == true
+                x_coord_norm = (i ./scaling) * 2 - 1 * size(matrix,1)/scaling
+                y_coord_norm = (j ./scaling) * 2 - 1 * size(matrix,2)/scaling
+                push!(Pointcloud, [x_coord_norm, y_coord_norm])
+            end
+        end
+    end
+    return hcat(Pointcloud...)', scaling * 10 /1000 #return in km
+end
+
+
+Pointcloud, scaling = normalize_matrix(matrix)
+file = matopen("src/Stacker/parameters/$(TargetID).mat", "w")
+write(file, "cloudPointXYCoords", collect(Pointcloud))
+close(file)
+
+fig = Figure(resolution = (800, 600))
+ax = CairoMakie.Axis(fig[1, 1])
+scatter!(ax, Pointcloud[:, 1], Pointcloud[:, 2], markersize = 1, color = :blue)
+fig

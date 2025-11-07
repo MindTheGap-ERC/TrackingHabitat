@@ -456,7 +456,7 @@ function initializeGUI(gui, params, run, strata)
         
         % Copy the initial bathmyetry map as the elevation of the first chron surface
         strata.layers(:,:,1) =  params.initialBathymetryMap;
-        
+
         % Multiply the subsidence rate by the modle time step to ensure all rates are correct magnitude to apply per time step iteration
         params.subsidenceRate = params.subsidenceRate * params.deltaT;
         
@@ -918,10 +918,12 @@ function initializeGUI(gui, params, run, strata)
         ycoVect = 0:params.gridDy:params.gridDy * (params.gridCellsY-1);
         [xcoGrid,ycoGrid] = meshgrid(xcoVect, ycoVect); % Create the whole grid xy coordinates
         elevationsToPlot = strata.layers(:,:,layerNumber).'; % Note because of how surf works, xy axes need to be transposed to plot correctly - annoying but necessary!
-        coloursToPlot = createColourTripletMap(strata.faciesColourMap, strata.facies(:,:,layerNumber));
+        coloursToPlot = createColourTripletMap(strata.faciesColourMap, strata.facies(:,:,layerNumber).');
+%        disp(size(strata.layers));
+%        disp(size(strata.facies));
 %         faciesToPlot = strata.facies(:,:,layerNumber).';
 %         surfLeesh = surf(xcoGrid, ycoGrid, elevationsToPlot, faciesToPlot); % Plot the initial condition bathymetry colour coded by facies
-        surfLeesh = surf(xcoGrid, ycoGrid, elevationsToPlot, coloursToPlot); % Plot the initial condition bathymetry colour coded by facies
+        surfLeesh = surf(xcoGrid, ycoGrid, elevationsToPlot, coloursToPlot); % the initial condition bathymetry colour coded by facies
         set(surfLeesh, 'EdgeColor',[0.8, 0.8, 0.9])
         colormap(strata.faciesColourMap)
         
@@ -961,9 +963,10 @@ function initializeGUI(gui, params, run, strata)
         for x=1:xSize
             for y = 1:ySize
                 % Note the y,x order to populate the coloursToPlot matrix - not sure why this is required to plot correctly, but it is - something to do with the surf command??
-                coloursToPlot(y,x,:) = colourMap(faciesMap(x,y) + 1,:); % +1 because facies zero (hiatus) maps to row 1 in the colour map matrix
+                coloursToPlot(x,y,:) = colourMap(faciesMap(x,y) + 1,:); % +1 because facies zero (hiatus) maps to row 1 in the colour map matrix
             end
         end
+        disp(size(coloursToPlot));
     end
 
     function drawDipSectionAndChronostrat(iterations, params, strata, sectXPosition)
