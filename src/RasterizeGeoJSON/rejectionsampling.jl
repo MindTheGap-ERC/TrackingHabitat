@@ -10,7 +10,7 @@ data = GeoJSON.read(PATH)
 
 
 
-# Third filter out repeated trackedIDs in 1945
+# filter out repeated trackedIDs in 1945
 function find_repeat_ID()
     list_trackID = [f.properties["trackID"] for f in data.features]
     repeated_IDs = String[]
@@ -47,7 +47,7 @@ function calculate_coords(feature, trackedID)
         if f.properties["trackID"] == trackedID && isa(f.geometry, GeoInterface.Polygon) == true
             if f.geometry.coordinates[1][1] == f.geometry.coordinates[1][end]
             return f.geometry.coordinates[1]
-            else println("not closed polygon") && break
+            else println("not a closed polygon") && break
             end
         elseif f.properties["trackID"] == trackedID && isa(f.geometry, GeoInterface.MultiPolygon) == true
             polys = Vector{Float64}[]

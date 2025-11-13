@@ -4,8 +4,8 @@ using DataFrames
 using CSV
 using Plots
 using GeoMakie
+export get_centroids, import_data
 filepath = "results/tracked_species.geojson"
-
 function import_data(file_path)
     data = ArchGDAL.read(file_path)
     Tabledata = DataFrame(ArchGDAL.getlayer(data, 0))
@@ -90,6 +90,8 @@ directions = calculate_directions(data)
 
 result = DataFrame(Direction = directions, Distance = distances)
 data = hcat(data, result)
+rename!(data, Symbol("1945.0") => :vintage)
+rename!(data, Symbol("2019.0") => :modern)
 max_dist = maximum(distances)  
 
 species = unique(data.Habitat)
@@ -97,15 +99,16 @@ species = unique(data.Habitat)
 function extract_species_data(data::DataFrame, species_name::AbstractString)
     result = filter(row -> row.Habitat == species_name, eachrow(data))
     result_df = DataFrame(result)
-    return dropmissing(result_df[:, [:Direction, :Distance]])
+    return dropmissing(result_df[:, [:trackID, :vintage, :Direction, :Distance]])
 end
 
-sand_data = extract_species_data(data, "Macroalgae")
+target_species = "Seagrass"
+extract_data = extract_species_data(data, target_species)
 
-open("results/Macroalgae_migration_data.txt", "w") do io
-    for (dir, dist) in zip(sand_data.Direction, sand_data.Distance)
+open("results/$(target_species)_migration_data.txt", "w") do io
+    for (tag, dir, dist) in zip(extract_data.trackID, extract_data.Direction, extract_data.Distance)
         
-        println(io, "$dir $dist")
+        println(io, "$tag $dir $dist")
     end
 end
 

@@ -14,5 +14,6 @@ function generate_topography(x_size, y_size, shoredepth, slopedepth)
     return topo .+ randn(y_size, x_size) .* 0.1
 end
 
-topography = generate_topography(X_size, Y_size, Shoredepth, Slopedepth)
+topography = generate_topography(X_size, Y_size, Shoredepth, Slopedepth)'
+size(topography)
 writedlm("src/Stacker/parameters/initialtopography.txt", topography)
