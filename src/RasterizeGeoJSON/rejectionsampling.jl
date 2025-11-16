@@ -12,6 +12,8 @@ end
 
 const PATH = "results/tracked_species.geojson"
 
+const txtPATH = "results/scaling_factor.txt"
+
 const TARGET_NUMBER = 500
 
 const INPUT = Inputdata(PATH, TARGET_NUMBER)
@@ -128,7 +130,7 @@ function normalize_points(points::Vector{Vector{Float64}}, min_x, max_x, min_y, 
     end
     println("scaling factor is ", scaling_factor/1000, " km")
 
-    return hcat(normalized_points...)' |> collect
+    return hcat(normalized_points...)' |> collect, scaling_factor/1000
 end
 
 
@@ -137,25 +139,37 @@ function process_feature(f, INPUT)
     minx, maxx, miny, maxy = get_bbx(coords)
 
     cloud = rejection_sampling(minx, maxx, miny, maxy, coords, INPUT.Target_number)
-    norm_cloud = normalize_points(cloud, minx, maxx, miny, maxy)
+    norm_cloud, scaling = normalize_points(cloud, minx, maxx, miny, maxy)
 
     trackID = f.properties[:trackID]
 
     file = matopen("src/Stacker/parameters/$(trackID).mat", "w")
     write(file, "cloudPointXYCoords", norm_cloud)
     close(file)
+
+    return trackID, scaling
 end
 
-function batch_process_output!(INPUT)
+function batch_process_output!(INPUT,txtpath)
     data = import_data(INPUT.JSONpath)
-
+    scaling_factor = []
     for specie in Species
         features = select_patch(data, specie) |> sort_and_select
         for f in features
-            process_feature(f, INPUT)
+            trackID, scaling = process_feature(f, INPUT)
+            push!(scaling_factor,(trackID, scaling))
         end
+    end
+
+    open(txtpath,"w") do io
+    println(io, "TrackID\tScaling_Factor_km")
+
+    for (trackID, scaling) in scaling_factor
+        println(io, "$(trackID)\t$(scaling)")
+    end
+
     end
 end
 
 Species = ["Seagrass", "Sand", "Macroalgae", "Microfilm", "Reef"]
-batch_process_output!(INPUT)
+batch_process_output!(INPUT,txtPATH)
