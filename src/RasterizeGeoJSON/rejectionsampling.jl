@@ -4,15 +4,21 @@ using Images
 using Meshes
 using CairoMakie
 using MAT
-# First to read the data
+
+struct Inputdata
+    JSONpath::String
+    Target_number::Int
+end
+
 const PATH = "results/tracked_species.geojson"
-data = GeoJSON.read(PATH)
 
+const TARGET_NUMBER = 500
 
+const INPUT = Inputdata(PATH, TARGET_NUMBER)
 
 # filter out repeated trackedIDs in 1945
-function find_repeat_ID()
-    list_trackID = [f.properties["trackID"] for f in data.features]
+function find_repeat_ID(data)
+    list_trackID = [f.properties[:trackID] for f in data.features]
     repeated_IDs = String[]
     for ID in list_trackID
         if count(==(ID), list_trackID) > 1
@@ -21,36 +27,41 @@ function find_repeat_ID()
     end
     return unique(repeated_IDs)
 end
-repeated_tractedIDs = find_repeat_ID()
-species_name = "Seagrass"
 
-repeated_features = filter(f -> f.properties["trackID"] in repeated_tractedIDs, data.features) 
-filtered_features = filter(f -> f.properties["Species"] == species_name, repeated_features)
-vintage_final_features = filter(f -> f.properties["Year"] == 1945, filtered_features) |> GeoInterface.FeatureCollection
-sorted_features = sort!(vintage_final_features.features, by = f -> f.properties["basalArea_genet"])
+function import_data(file_path)
+    data = GeoJSON.read(file_path)
+    return data
+end 
 
-for f in sorted_features
-    println("TrackID: ", f.properties["trackID"], ", Basal Area: ", f.properties["basalArea_genet"])
+function select_patch(data,Species_name::String)
+    repeated_trackedIDs = find_repeat_ID(data)
+    species_name = Species_name
+
+    vintage_final_features = data.features |>
+    x -> filter(f -> f.properties[:trackID] in repeated_trackedIDs, x) |>
+    x -> filter(f -> f.properties[:Species] == species_name, x) |>
+    x -> filter(f -> f.properties[:Year] == 1945, x) 
+
+    return vintage_final_features
 end
 
-
-TargetID = "Seagrass_1945_15" # I take this as an exmaple
-target_feature = filter(f -> f.properties["trackID"] == TargetID, vintage_final_features.features)
+function sort_and_select(feature)
+    sorted_features = sort!(feature, by = f -> f.properties[:basalArea_genet])
+    return length(sorted_features) > 5 ? sorted_features[1:5] : sorted_features
+end
 
 # obtain the points of the polygon and get the bounding box 
 # feature collection: f -> feature -> geometry -> coordinates -> [1]
 # feature : f -> geometry -> coordinates -> [1]
-function calculate_coords(feature, trackedID)
-    for f in feature
-        geomtype = typeof(f.geometry)
-        println(geomtype)
-        if f.properties["trackID"] == trackedID && isa(f.geometry, GeoInterface.Polygon) == true
+function calculate_coords(f)
+        println(typeof(f))
+        if isa(f.geometry, GeoJSON.Polygon) == true
             if f.geometry.coordinates[1][1] == f.geometry.coordinates[1][end]
             return f.geometry.coordinates[1]
-            else println("not a closed polygon") && break
+            else println("not a closed polygon") && return nothing
             end
-        elseif f.properties["trackID"] == trackedID && isa(f.geometry, GeoInterface.MultiPolygon) == true
-            polys = Vector{Float64}[]
+        elseif isa(f.geometry, GeoJSON.MultiPolygon) == true
+            polys = Vector{Tuple{<:Real,<:Real}}()
             for polygon in f.geometry.coordinates
                 append!(polys, polygon[1])
             end
@@ -63,37 +74,36 @@ function calculate_coords(feature, trackedID)
         else
             println("not going to the loop!!!!!! error!!!!")
         end
-    end
+
 end
 
-coords = calculate_coords(target_feature, TargetID)
+function get_bbx(coords)
+    xs = [c[1] for c in coords]
+    ys = [c[2] for c in coords]
+    min_x, max_x = extrema(xs)
+    min_y, max_y = extrema(ys)
+    return min_x, max_x, min_y, max_y
+end
 
-points = [Meshes.Point(c[1], c[2]) for c in coords]
-bbox = Meshes.boundingbox(points)
-min_x, min_y = Meshes.coordinates(bbox.min)
-max_x, max_y = Meshes.coordinates(bbox.max)
-
-# define point in polygon function
-function point_in_polygon(x::Float64, y::Float64, polygon::Vector{Vector{Float64}})
-    n = length(polygon)
+function point_in_polygon(x, y, polygon)
     inside = false
-    
+    n = length(polygon)
     j = n
+
     for i in 1:n
-        xi, yi = polygon[i][1], polygon[i][2]
-        xj, yj = polygon[j][1], polygon[j][2]
-        
-        if ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)
+        xi, yi = polygon[i]
+        xj, yj = polygon[j]
+
+        if ((yi > y) != (yj > y)) &&
+            x < (xj - xi) * (y - yi) / (yj - yi + eps()) + xi
             inside = !inside
         end
         j = i
     end
-    
+
     return inside
 end
 
-# try rejction sampling
-target_number = 500
 function rejection_sampling(min_x, max_x, min_y, max_y, coords, target_number)
     sampled_points = Vector{Float64}[]
     while length(sampled_points) < target_number
@@ -107,10 +117,7 @@ function rejection_sampling(min_x, max_x, min_y, max_y, coords, target_number)
     return sampled_points
 end
 
-PointCloud = rejection_sampling(min_x, max_x, min_y, max_y, coords, target_number)
-
-# normalize the points to[-1,1] range
-function normalize_points(points::Vector{Vector{Float64}})
+function normalize_points(points::Vector{Vector{Float64}}, min_x, max_x, min_y, max_y)
     
     normalized_points = Vector{Float64}[]
     scaling_factor = maximum([max_x - min_x, max_y - min_y])
@@ -124,8 +131,31 @@ function normalize_points(points::Vector{Vector{Float64}})
     return hcat(normalized_points...)' |> collect
 end
 
-PointCloud_normalized = normalize_points(PointCloud)
 
-file = matopen("src/Stacker/parameters/$(TargetID).mat", "w")
-write(file, "cloudPointXYCoords", PointCloud_normalized)
-close(file)
+function process_feature(f, INPUT)
+    coords = calculate_coords(f)
+    minx, maxx, miny, maxy = get_bbx(coords)
+
+    cloud = rejection_sampling(minx, maxx, miny, maxy, coords, INPUT.Target_number)
+    norm_cloud = normalize_points(cloud, minx, maxx, miny, maxy)
+
+    trackID = f.properties[:trackID]
+
+    file = matopen("src/Stacker/parameters/$(trackID).mat", "w")
+    write(file, "cloudPointXYCoords", norm_cloud)
+    close(file)
+end
+
+function batch_process_output!(INPUT)
+    data = import_data(INPUT.JSONpath)
+
+    for specie in Species
+        features = select_patch(data, specie) |> sort_and_select
+        for f in features
+            process_feature(f, INPUT)
+        end
+    end
+end
+
+Species = ["Seagrass", "Sand", "Macroalgae", "Microfilm", "Reef"]
+batch_process_output!(INPUT)
