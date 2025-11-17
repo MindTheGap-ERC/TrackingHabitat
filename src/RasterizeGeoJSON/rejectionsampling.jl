@@ -4,10 +4,11 @@ using Images
 using Meshes
 using CairoMakie
 using MAT
-
+using Statistics
 struct Inputdata
     JSONpath::String
     Target_number::Int
+    Rotate_angle::Int64
 end
 
 const PATH = "results/tracked_species.geojson"
@@ -16,7 +17,9 @@ const txtPATH = "results/scaling_factor.txt"
 
 const TARGET_NUMBER = 500
 
-const INPUT = Inputdata(PATH, TARGET_NUMBER)
+const ANGLE = 135
+
+const INPUT = Inputdata(PATH, TARGET_NUMBER,ANGLE)
 
 # filter out repeated trackedIDs in 1945
 function find_repeat_ID(data)
@@ -48,7 +51,7 @@ function select_patch(data,Species_name::String)
 end
 
 function sort_and_select(feature)
-    sorted_features = sort!(feature, by = f -> f.properties[:basalArea_genet])
+    sorted_features = sort!(feature, by = f -> f.properties[:basalArea_genet], rev=true)
     return length(sorted_features) > 5 ? sorted_features[1:5] : sorted_features
 end
 
@@ -133,6 +136,15 @@ function normalize_points(points::Vector{Vector{Float64}}, min_x, max_x, min_y, 
     return hcat(normalized_points...)' |> collect, scaling_factor/1000
 end
 
+function rotate_points(points::Matrix{Float64}, angle_degrees)
+    
+    angle_rad = -deg2rad(angle_degrees)
+    R = [cos(angle_rad) -sin(angle_rad);
+         sin(angle_rad)  cos(angle_rad)]
+
+    return (R * points')' |> collect
+end
+
 
 function process_feature(f, INPUT)
     coords = calculate_coords(f)
@@ -140,11 +152,11 @@ function process_feature(f, INPUT)
 
     cloud = rejection_sampling(minx, maxx, miny, maxy, coords, INPUT.Target_number)
     norm_cloud, scaling = normalize_points(cloud, minx, maxx, miny, maxy)
-
+    rotate_cloud = rotate_points(norm_cloud,INPUT.Rotate_angle)
     trackID = f.properties[:trackID]
 
     file = matopen("src/Stacker/parameters/$(trackID).mat", "w")
-    write(file, "cloudPointXYCoords", norm_cloud)
+    write(file, "cloudPointXYCoords", rotate_cloud)
     close(file)
 
     return trackID, scaling

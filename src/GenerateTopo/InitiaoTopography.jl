@@ -1,8 +1,8 @@
 using Random
 using DelimitedFiles
 
-const X_size = 250
-const Y_size = 50
+const X_size = 100
+const Y_size = 100
 const Shoredepth = 0.0
 const Slopedepth = -5.0
 
@@ -13,6 +13,7 @@ function generate_topography(x_size, y_size, shoredepth, slopedepth)
     end
     return topo .+ randn(y_size, x_size) .* 0.1
 end
+
 
 topography = generate_topography(X_size, Y_size, Shoredepth, Slopedepth)'
 size(topography)

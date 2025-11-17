@@ -1,8 +1,8 @@
 FaciesMosaic	# Model name
 100		# total grid cells x dimension						# grid size x dimension
 100		# total grid cells y dimension
-0.1		# grid cell spacing, x dimension, km, so 0.1 spacing for 100 cells means 10km grid dimension
-0.1		# grid cell spacing, y dimension, km
+1		# grid cell spacing, x dimension, km, so 0.1 spacing for 100 cells means 10km grid dimension
+1		# grid cell spacing, y dimension, km
 
 1.000								# model duration, My
 0.001								# model time step, My
