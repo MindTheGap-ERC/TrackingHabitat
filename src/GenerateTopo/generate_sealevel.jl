@@ -1,6 +1,6 @@
 using DelimitedFiles
 
-n_points = 1000
+n_points = 10000
 amplitude_a = 10.0 
 amplitude_b = 5.0         
 periods_a = 5             

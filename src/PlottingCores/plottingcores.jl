@@ -83,8 +83,41 @@ function draw_multiple_cores(layers, facies, core_coords)
     return fig
 end
 
+# calculate calculate_proportion_facies
+
+function calculate_proportion_facies(core_layers, core_facies)
+    total_thickness = core_layers[end] - core_layers[1]
+    facies_codes = unique(core_facies)
+    proportions = Dict{Int64, Float64}()
+    for code in facies_codes
+        thickness = 0.0
+        for idx in eachindex(core_facies)[2:end]
+            if core_facies[idx] == code
+                top = core_layers[idx]
+                bottom = core_layers[idx-1]
+                thickness += (top - bottom)
+            end
+        end
+        proportions[code] = thickness / total_thickness
+    end
+    return proportions
+end
+
+function calculate_all_cores_proportions(layers, facies, core_coords)
+    all_proportions = []
+    for (core_x, core_y) in core_coords
+        core_layers = layers[core_x, core_y, :]
+        core_facies = facies[core_x, core_y, :]
+        proportions = calculate_proportion_facies(core_layers, core_facies)
+        push!(all_proportions, proportions)
+    end
+    return all_proportions
+    write("results/STACKER_cores_proportions.txt", all_proportions)
+end
+
 # implement and save
 fig = draw_multiple_cores(layers, reproj_facies, core_coords) 
 save("fig/STACKER_cores.png", fig)
 
+calculate_all_cores_proportions(layers, reproj_facies, core_coords)
 end
