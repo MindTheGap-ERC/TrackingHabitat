@@ -75,15 +75,44 @@ function draw_multiple_cores(layers, facies, core_coords)
         
     end
 
-    facies_codes = [101, 102, 103, 105]
-    facies_labels = ["ooidal grainstone", "skeletal grainstone", "ooidal packstone", "packstone"]
+    facies_codes = [101, 103, 105]
+    facies_labels = ["ooidal grainstone", "ooidal packstone", "packstone"]
     legend_elements = [PolyElement(color = get_facies_color(code)) for code in facies_codes]
     Legend(fig[1, length(core_coords) + 1], legend_elements, facies_labels)
 
     return fig
 end
 
-# calculate calculate_proportion_facies
+function plot_cross_section(layers, facies)
+
+    n_positions = size(layers)[1]
+    
+    fig = Figure(resolution = (20 * n_positions, 600))
+    
+    for pos in 1:n_positions
+        pos_layers = layers[pos, 50, :]
+        pos_facies = facies[pos, 50, :]
+        
+        if pos == 1
+            ax = Axis(fig[1, pos]; xlabel = "", ylabel = "Depth (m)", yreversed = false, xticks = ([], []))
+        else
+            ax = Axis(fig[1, pos]; xlabel = "", ylabel = "", yreversed = false, xticks = ([], []))
+        end
+        
+        subcore!(ax, pos_layers, pos_facies)
+    end
+    
+    facies_codes = [101, 103, 105]
+    facies_labels = ["ooidal grainstone", "ooidal packstone", "packstone"]
+    legend_elements = [PolyElement(color = get_facies_color(code)) for code in facies_codes]
+    Legend(fig[1, n_positions + 1], legend_elements, facies_labels)
+    
+    return fig
+end
+
+cross_fig = plot_cross_section(layers, reproj_facies)
+save("fig/STACKER_cross_section.png", cross_fig)
+# calculate proportions of what faciesin each core
 
 function calculate_proportion_facies(core_layers, core_facies)
     total_thickness = core_layers[end] - core_layers[1]
@@ -115,7 +144,7 @@ function calculate_all_cores_proportions(layers, facies, core_coords)
     write("results/STACKER_cores_proportions.txt", all_proportions)
 end
 
-# implement and save
+
 fig = draw_multiple_cores(layers, reproj_facies, core_coords) 
 save("fig/STACKER_cores.png", fig)
 

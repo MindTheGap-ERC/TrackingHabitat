@@ -1,11 +1,11 @@
 # GMT 6 Session common arguments shelf
 BEGIN GMT 6.7.0
-B	afWSen+tSeagrass migration distances and directions (1945-2019)
-J	P
+B	afWSen
+J	X
 JN	N180.0/15c
 JP	P15c
-JX	X12c
-R	0/360/0/1673.246441866027
+JX	X15c/10c
+R	0/0.8/0.12/0.9
 Y	4.666666666666667c
-@L	2
+@L	1
 END

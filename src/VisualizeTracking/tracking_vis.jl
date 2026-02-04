@@ -9,7 +9,7 @@ fig = Figure(size = (4000, 3000),fontsize = 10)
 
 data = GeoJSON.read("results/tracked_species.geojson")
 geometries = [f.geometry for f in data.features]
-tag = "Reef"
+tag = "Sand"
 data_tag = filter(f -> f.properties[:Species] == tag, data.features)
 
 # find repeated_IDs
@@ -79,3 +79,4 @@ Legend(fig[1, 3],
 
 fig
 save("results/tracked_$(tag)_comparison.png", fig)
+

@@ -4,7 +4,7 @@ FaciesMosaic	# Model name
 1		# grid cell spacing, x dimension, km, so 1 spacing for 100 cells means 100km grid dimension
 0.25		# grid cell spacing, y dimension, km
 
-0.1								# model duration, My
+0.5								# model duration, My
 0.0001								# model time step, My
 parameters/initialtopography.txt	# initial topography filename
 20.0								# subsidence rate, m per My
@@ -13,23 +13,23 @@ parameters/sealevel_sin.txt				# sea-level curve filename
 5		# Number of facies in the model
 
 1		# facies element number/code (useful only for readability), sand
-500.0		# maximum deposition rate, m/My
+160.0		# maximum deposition rate, m/My
 1 1 0	# RGB colour code coral yellow
 
 2		# facies element number/code (useful only for readability), coral
-400.0		# maximum deposition rate, m/My
+500.0		# maximum deposition rate, m/My
 0 0 1		# RGB colour code, blue
 
 3		# facies element number/code (useful only for readability), seagrass
-300.0		# maximum deposition rate, m/My
+200.0		# maximum deposition rate, m/My
 0 1 0	# RGB colour code,  green
 
 4		# facies element number/code (useful only for readability), macroalgae
-50.0		# maximum deposition rate, m/My
+190.0		# maximum deposition rate, m/My
 0.5 0.5 0.5	# RGB colour code, grey
 
 5		# facies element number/code (useful only for readability), microfilm
-10.0		# maximum deposition rate, m/My
+18.0		# maximum deposition rate, m/My
 1 0 0	# RGB colour code, red
 
 FaciesMosaic	# flag indicating the basic nature of the model eg facies belts or facies mosaic

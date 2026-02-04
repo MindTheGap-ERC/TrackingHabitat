@@ -1,14 +1,14 @@
-quadNames <- list.files("data/data_seagrass", pattern = "\\.shp$")
+quadNames <- list.files("data", pattern = "\\.shp$")
 
 year_lookup <- data.frame(
-  filename = c("vintage_seagrass", "modern_seagrass"),
+  filename = c("vintage", "modern_individual_Project"),
   year = c(1945L, 2019L)  
 )
 shape_list <- list()
 counter <- 1
 
 for (filename in year_lookup$filename) {
-  shapeNow <- sf::st_read(dsn = "data/data_seagrass", 
+  shapeNow <- sf::st_read(dsn = "data", 
                          layer = filename,
                          quiet = TRUE)
   
@@ -19,7 +19,7 @@ for (filename in year_lookup$filename) {
     geometry = sf::st_geometry(shapeNow),
     Site = "Joulters",
     Facies = shapeNow$Class_name, 
-    Quad = "seagrass",
+    Quad = "Habitat",
     Year = year_lookup$year[match(filename, year_lookup$filename)],
     type = "polygon"
   )
@@ -32,8 +32,8 @@ dat <- do.call(rbind, shape_list)
 
 dir.create("results", showWarnings = FALSE)
 
-sf::st_write(dat, "results/combined_seagrass_shapes.shp", append=FALSE)
+sf::st_write(dat, "results/combined_shapes.shp", append=FALSE)
 
-saveRDS(dat, "results/combined_seagrass_shapes.rds")
+saveRDS(dat, "results/combined_shapes.rds")
 
-write.csv(sf::st_drop_geometry(dat), "results/combined_seagrass_shapes.csv", row.names = FALSE)
+write.csv(sf::st_drop_geometry(dat), "results/combined_shapes.csv", row.names = FALSE)

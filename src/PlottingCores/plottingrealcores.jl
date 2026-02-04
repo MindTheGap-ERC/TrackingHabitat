@@ -3,7 +3,7 @@ using CairoMakie
 include("plottingcores.jl")
 
 # get core layers from manual measurements
-core_collection = ["core_78_3_7", "core_78_3_18", "core_78_10_13", "core_2_43"]
+core_collection = ["core_78_3_7", "core_78_10_13", "core_2_43"]#, "core_78_3_18"
 
 core_78_3_7 = [-4.6, -2]
 
@@ -13,24 +13,24 @@ core_78_10_13 = [-1.9, -0.3]
 
 core_2_43 = [-3.5, -2.2, -0.6]
 
-layers = [core_78_3_7, core_78_3_18, core_78_10_13, core_2_43]
+layers = [core_78_3_7,  core_78_10_13, core_2_43]#, core_78_3_18,
 
 # get core facies from manual measurements
-core_facies_collection = ["f_core_78_3_7", "f_core_78_3_18", "f_core_78_10_13", "f_core_2_43"]
+core_facies_collection = ["f_core_78_3_7", "f_core_78_10_13", "f_core_2_43"]#, "f_core_78_3_18"
 
 f_core_78_3_7 = [100, 103]
 
-f_core_78_3_18 = [100, 101, 103, 102, 103, 101, 103, 101]
+#f_core_78_3_18 = [100, 101, 103, 102, 103, 101, 103, 101]
 
 f_core_78_10_13 = [100, 101]
 
 f_core_2_43 = [100, 105, 103]
 
 # facies: combine all cores into a matrix
-facies = [f_core_78_3_7, f_core_78_3_18, f_core_78_10_13, f_core_2_43]
+facies = [f_core_78_3_7, f_core_78_10_13, f_core_2_43]#, f_core_78_3_18
 
 # define core locations
-core_coords = [(1,1), (2,1), (3,1), (4,1)] 
+core_coords = [(1,1), (2,1), (3,1)] #, (4,1)
 
 figreal = PlottingCores.draw_multiple_cores(layers, facies, core_coords)
 save("fig/real_cores.png", figreal)
