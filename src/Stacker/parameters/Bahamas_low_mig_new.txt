@@ -1,10 +1,10 @@
 FaciesMosaic	# Model name
-100		# total grid cells x dimension						# grid size x dimension
-100	  # total grid cells y dimension
-0.5		# grid cell spacing, x dimension, km, so 1 spacing for 100 cells means 100km grid dimension
-0.25		# grid cell spacing, y dimension, km
+1000		# total grid cells x dimension						# grid size x dimension
+1000	  # total grid cells y dimension
+0.05		# grid cell spacing, x dimension, km, so 1 spacing for 100 cells means 100km grid dimension
+0.025		# grid cell spacing, y dimension, km
 
-0.5								# model duration, My
+0.1								# model duration, My
 0.0001								# model time step, My
 parameters/initialtopography.txt	# initial topography filename
 20.0								# subsidence rate, m per My
