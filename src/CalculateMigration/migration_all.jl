@@ -53,7 +53,7 @@ function calculate_distances(data)
         else
         point1 = data[i, "1945"]
         point2 = data[i, "2019"]
-        dist = euclidean(point1, point2)
+        dist = chebyshev(point1, point2)
         push!(distances, dist)
 
         end
@@ -104,7 +104,7 @@ function extract_species_data(data::DataFrame, species_name::AbstractString)
     return dropmissing(result_df[:, [:trackID, :vintage, :Direction, :Distance]])
 end
 
-target_species = "sand"
+target_species = "Microfilm"
 extract_data = extract_species_data(data, target_species)
 
 
@@ -121,6 +121,7 @@ function plot_polar(tag, directions, distances)
     CairoMakie.scatter!(ax, directions, distances; markersize = 20, color = :black, alpha = 1)
     return f
 end
+
 tag_species = target_species
 polar_fig = plot_polar(tag_species, extract_data.Direction, extract_data.Distance)
 save("results/$(tag_species)_migration_polar.png", polar_fig)

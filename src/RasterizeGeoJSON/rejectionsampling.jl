@@ -15,9 +15,9 @@ const PATH = "results/tracked_species.geojson"
 
 const txtPATH = "results/scaling_factor.txt"
 
-const TARGET_NUMBER = 500
+const TARGET_NUMBER = 1000
 
-const ANGLE = 135
+const ANGLE = 115
 
 const INPUT = Inputdata(PATH, TARGET_NUMBER,ANGLE)
 

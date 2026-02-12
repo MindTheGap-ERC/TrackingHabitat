@@ -1,7 +1,7 @@
 FaciesMosaic	# Model name
 100		# total grid cells x dimension						# grid size x dimension
 100	  # total grid cells y dimension
-1		# grid cell spacing, x dimension, km, so 1 spacing for 100 cells means 100km grid dimension
+0.5		# grid cell spacing, x dimension, km, so 1 spacing for 100 cells means 100km grid dimension
 0.25		# grid cell spacing, y dimension, km
 
 0.5								# model duration, My
@@ -13,11 +13,11 @@ parameters/sealevel_sin.txt				# sea-level curve filename
 5		# Number of facies in the model
 
 1		# facies element number/code (useful only for readability), sand
-160.0		# maximum deposition rate, m/My
+320.0		# maximum deposition rate, m/My
 1 1 0	# RGB colour code coral yellow
 
 2		# facies element number/code (useful only for readability), coral
-500.0		# maximum deposition rate, m/My
+300.0		# maximum deposition rate, m/My
 0 0 1		# RGB colour code, blue
 
 3		# facies element number/code (useful only for readability), seagrass
@@ -29,186 +29,207 @@ parameters/sealevel_sin.txt				# sea-level curve filename
 0.5 0.5 0.5	# RGB colour code, grey
 
 5		# facies element number/code (useful only for readability), microfilm
-18.0		# maximum deposition rate, m/My
+20.0		# maximum deposition rate, m/My
 1 0 0	# RGB colour code, red
 
 FaciesMosaic	# flag indicating the basic nature of the model eg facies belts or facies mosaic
 Constant	# flag indicating production rate - water depth model
-25		# number of facies mosaic elements
-500		# number of xy points in each mosaic element
+27		# number of facies mosaic elements
+1000		# number of xy points in each mosaic element
 RandomWalk	# specify facies mosaic elements migration - StraightLines, RandomWalk, DeepestNeighbour, SteepestDescent
 
 1		# facies element number/code (useful only for readability)
 1		# facies element facies code
--0.8 -0.8		# XY maxiumum migration rate km per iteration
-50 5		# Initial xy coordinate of facies element centroid, in km
-20.0		# Mosaic element radius in km
+-0.08 -0.08		# XY maxiumum migration rate km per iteration
+23 3		# Initial xy coordinate of facies element centroid, in km
+21.0		# Mosaic element radius in km
 parameters/Sand_1945_1.mat	# filename for facies mosaic element point cloud coordinates
 
 2		# facies element number/code (useful only for readability)
 1		# facies element facies code
--2.5 2.5	# XY maxiumum migration rate km per iteration
-70 10		# Initial xy coordinate of facies element centroid, in km
-7.9		# Mosaic element radius in km
-parameters/Sand_1945_73.mat	# filename for facies mosaic element point cloud coordinates
+0.08 0.07	# XY maxiumum migration rate km per iteration
+45 8		# Initial xy coordinate of facies element centroid, in km
+4.9		# Mosaic element radius in km
+parameters/Sand_1945_22.mat	# filename for facies mosaic element point cloud coordinates
 
 3		# facies element number/code (useful only for readability)
 1		# facies element facies code
--0.6 0.6	# XY maxiumum migration rate km per iteration
-90 5		# Initial xy coordinate of facies element centroid, in km
+-0.3 -0.4	# XY maxiumum migration rate km per iteration
+6 6		# Initial xy coordinate of facies element centroid, in km
 3.2		# Mosaic element radius in km
-parameters/Sand_1945_91.mat	# filename for facies mosaic element point cloud coordinates
+parameters/Sand_1945_21.mat	# filename for facies mosaic element point cloud coordinates
 
 4		# facies element number/code (useful only for readability)
 1		# facies element facies code
--0.9 0.9		# XY maxiumum migration rate km per iteration
-70 9		# Initial xy coordinate of facies element centroid, in km
-3.5		# Mosaic element radius in km
-parameters/Sand_1945_64.mat	# filename for facies mosaic element point cloud coordinates
+0.25 0.3		# XY maxiumum migration rate km per iteration
+5 7		# Initial xy coordinate of facies element centroid, in km
+2.3		# Mosaic element radius in km
+parameters/Sand_1945_23.mat	# filename for facies mosaic element point cloud coordinates
 
 5		# facies element number/code (useful only for readability)
 1		# facies element facies code
-0.4 0.1	# XY maxiumum migration rate km per iteration
-80 9 	# Initial xy coordinate of facies element centroid, in km
-3.3		# Mosaic element radius in km
-parameters/Sand_1945_96.mat	# filename for facies mosaic element point cloud coordinates
+-0.1 0.1	# XY maxiumum migration rate km per iteration
+10 9 	# Initial xy coordinate of facies element centroid, in km
+1.3		# Mosaic element radius in km
+parameters/Sand_1945_17.mat	# filename for facies mosaic element point cloud coordinates
 
 6		# facies element number/code (useful only for readability)
 2		# facies element facies code
--0.0 -0.3		# XY maxiumum migration rate km per iteration
-20 20		# Initial xy coordinate of facies element centroid, in km
+-0.3 -0.0		# XY maxiumum migration rate km per iteration
+10 22		# Initial xy coordinate of facies element centroid, in km
 0.8 	# Mosaic element radius in km
-parameters/Reef_1945_296.mat	# filename for facies mosaic element point cloud coordinates
+parameters/Reef_1945_126.mat	# filename for facies mosaic element point cloud coordinates
 
 7		# facies element number/code (useful only for readability)
 2		# facies element facies code
-0.0 0.18	# XY maxiumum migration rate km per iteration
-18 20		# Initial xy coordinate of facies element centroid, in km
-0.33		# Mosaic element radius in km
-parameters/Reef_1945_36.mat	# filename for facies mosaic element point cloud coordinates
+0.05 0.0	# XY maxiumum migration rate km per iteration
+9 23		# Initial xy coordinate of facies element centroid, in km
+0.6		# Mosaic element radius in km
+parameters/Reef_1945_58.mat	# filename for facies mosaic element point cloud coordinates
 
 8		# facies element number/code (useful only for readability)
 2		# facies element facies code
-0.075 0.075	# XY maxiumum migration rate km per iteration
-16 20		# Initial xy coordinate of facies element centroid, in km
-0.23		# Mosaic element radius in km
-parameters/Reef_1945_22.mat	# filename for facies mosaic element point cloud coordinates
+0.075 0.035	# XY maxiumum migration rate km per iteration
+8 24		# Initial xy coordinate of facies element centroid, in km
+0.5		# Mosaic element radius in km
+parameters/Reef_1945_20.mat	# filename for facies mosaic element point cloud coordinates
 
 9		# facies element number/code (useful only for readability)
 2		# facies element facies code
--0.022 0.022		# XY maxiumum migration rate km per iteration
-15 20		# Initial xy coordinate of facies element centroid, in km
-0.37		# Mosaic element radius in km
-parameters/Reef_1945_140.mat	# filename for facies mosaic element point cloud coordinates
+0.18 -0.01		# XY maxiumum migration rate km per iteration
+7 21		# Initial xy coordinate of facies element centroid, in km
+0.5		# Mosaic element radius in km
+parameters/Reef_1945_67.mat	# filename for facies mosaic element point cloud coordinates
 
 10		# facies element number/code (useful only for readability)
 2		# facies element facies code
--0.01 0.01	# XY maxiumum migration rate km per iteration
-12 20 	# Initial xy coordinate of facies element centroid, in km
-0.12		# Mosaic element radius in km
-parameters/Reef_1945_171.mat	# filename for facies mosaic element point cloud coordinates
+0.03 0.01	# XY maxiumum migration rate km per iteration
+6 22 	# Initial xy coordinate of facies element centroid, in km
+0.5		# Mosaic element radius in km
+parameters/Reef_1945_88.mat	# filename for facies mosaic element point cloud coordinates
 
 11		# facies element number/code (useful only for readability)
 3		# facies element facies code
--1.6 1.6		# XY maxiumum migration rate km per iteration
-50 15		# Initial xy coordinate of facies element centroid, in km
-16		# Mosaic element radius in km
-parameters/Seagrass_1945_34.mat	# filename for facies mosaic element point cloud coordinates
+0.35 -0.35		# XY maxiumum migration rate km per iteration
+26 14		# Initial xy coordinate of facies element centroid, in km
+18		# Mosaic element radius in km
+parameters/Seagrass_1945_4.mat	# filename for facies mosaic element point cloud coordinates
 
 12		# facies element number/code (useful only for readability)
 3		# facies element facies code
--1.3 1.3	# XY maxiumum migration rate km per iteration
-80 12		# Initial xy coordinate of facies element centroid, in km
-4.3		# Mosaic element radius in km
-parameters/Seagrass_1945_122.mat	# filename for facies mosaic element point cloud coordinates
+-0.25 -0.25	# XY maxiumum migration rate km per iteration-1.0 -0.5
+5 13		# Initial xy coordinate of facies element centroid, in km
+6.6		# Mosaic element radius in km
+parameters/Seagrass_1945_54.mat	# filename for facies mosaic element point cloud coordinates
 
 13		# facies element number/code (useful only for readability)
 3		# facies element facies code
--1.2 1.2	# XY maxiumum migration rate km per iteration
-70 16		# Initial xy coordinate of facies element centroid, in km
-3.2		# Mosaic element radius in km
-parameters/Seagrass_1945_116.mat	# filename for facies mosaic element point cloud coordinates
+0.06 -0.023	# XY maxiumum migration rate km per iteration
+2 15		# Initial xy coordinate of facies element centroid, in km-0.8 0.6
+3.7		# Mosaic element radius in km
+parameters/Seagrass_1945_5.mat	# filename for facies mosaic element point cloud coordinates
 
 14		# facies element number/code (useful only for readability)
 3		# facies element facies code
--0.8 0.8		# XY maxiumum migration rate km per iteration
+0.08 0.12		# XY maxiumum migration rate km per iteration
 15 18		# Initial xy coordinate of facies element centroid, in km
-1.8		# Mosaic element radius in km
-parameters/Seagrass_1945_15.mat	# filename for facies mosaic element point cloud coordinates
+2.7		# Mosaic element radius in km
+parameters/Seagrass_1945_26.mat	# filename for facies mosaic element point cloud coordinates
 
 15		# facies element number/code (useful only for readability)
 3		# facies element facies code
-0.032 -0.032	# XY maxiumum migration rate km per iteration
+-0.6 -0.1	# XY maxiumum migration rate km per iteration
 8 17 	# Initial xy coordinate of facies element centroid, in km
-2.7		# Mosaic element radius in km
+1.7 	# Mosaic element radius in km
 parameters/Seagrass_1945_59.mat	# filename for facies mosaic element point cloud coordinates
 
 16		# facies element number/code (useful only for readability)
 4		# facies element facies code
--0.2 0.24		# XY maxiumum migration rate km per iteration
-70 13		# Initial xy coordinate of facies element centroid, in km
+0.2 -0.1		# XY maxiumum migration rate km per iteration
+35 15		# Initial xy coordinate of facies element centroid, in km
 1.5		# Mosaic element radius in km
-parameters/Macroalgae_1945_5.mat	# filename for facies mosaic element point cloud coordinates
+parameters/Macroalgae_1945_3.mat	# filename for facies mosaic element point cloud coordinates
 
 17		# facies element number/code (useful only for readability)
 4		# facies element facies code
--0.2 -0.24	# XY maxiumum migration rate km per iteration
-69 13		# Initial xy coordinate of facies element centroid, in km
+-0.2 -0.1	# XY maxiumum migration rate km per iteration
+34 16		# Initial xy coordinate of facies element centroid, in km
 1.25		# Mosaic element radius in km
-parameters/Macroalgae_1945_7.mat	# filename for facies mosaic element point cloud coordinates
+parameters/Macroalgae_1945_5.mat	# filename for facies mosaic element point cloud coordinates
 
 18		# facies element number/code (useful only for readability)
 4		# facies element facies code
--0.2 0.0	# XY maxiumum migration rate km per iteration
-68 13		# Initial xy coordinate of facies element centroid, in km
+-0.2 0.1	# XY maxiumum migration rate km per iteration
+33 13		# Initial xy coordinate of facies element centroid, in km
 0.49		# Mosaic element radius in km
-parameters/Macroalgae_1945_11.mat	# filename for facies mosaic element point cloud coordinates
+parameters/Macroalgae_1945_6.mat	# filename for facies mosaic element point cloud coordinates
 
 19		# facies element number/code (useful only for readability)
 4		# facies element facies code
 -0.5 0.0		# XY maxiumum migration rate km per iteration
-67 14		# Initial xy coordinate of facies element centroid, in km
-0.37		# Mosaic element radius in km
+32 14		# Initial xy coordinate of facies element centroid, in km
+0.45		# Mosaic element radius in km
 parameters/Macroalgae_1945_2.mat	# filename for facies mosaic element point cloud coordinates
 
 20		# facies element number/code (useful only for readability)
 4		# facies element facies code
-0.17 0.17	# XY maxiumum migration rate km per iteration
-68 15 	# Initial xy coordinate of facies element centroid, in km
+0.1 0.1	# XY maxiumum migration rate km per iteration
+34 15 	# Initial xy coordinate of facies element centroid, in km
 0.39		# Mosaic element radius in km
 parameters/Macroalgae_1945_4.mat	# filename for facies mosaic element point cloud coordinates
 
 21		# facies element number/code (useful only for readability)
 5		# facies element facies code
--0.3 0.3		# XY maxiumum migration rate km per iteration
-20 1.5		# Initial xy coordinate of facies element centroid, in km
+-0.3 0.1		# XY maxiumum migration rate km per iteration
+10 1.5		# Initial xy coordinate of facies element centroid, in km
 5.4		# Mosaic element radius in km
 parameters/Microfilm_1945_2.mat	# filename for facies mosaic element point cloud coordinates
 
 22		# facies element number/code (useful only for readability)
 5		# facies element facies code
-0 0.4	# XY maxiumum migration rate km per iteration
-85 2		# Initial xy coordinate of facies element centroid, in km
+0.4 0.0	# XY maxiumum migration rate km per iteration
+44 2		# Initial xy coordinate of facies element centroid, in km
 4.3		# Mosaic element radius in km
-parameters/Microfilm_1945_34.mat	# filename for facies mosaic element point cloud coordinates
+parameters/Microfilm_1945_13.mat	# filename for facies mosaic element point cloud coordinates
 
 23		# facies element number/code (useful only for readability)
 5		# facies element facies code
-0.5 0.5	# XY maxiumum migration rate km per iteration
-40 3		# Initial xy coordinate of facies element centroid, in km
+0.4 0.2	# XY maxiumum migration rate km per iteration
+20 3		# Initial xy coordinate of facies element centroid, in km
 1.9		# Mosaic element radius in km
-parameters/Microfilm_1945_17.mat	# filename for facies mosaic element point cloud coordinates
+parameters/Microfilm_1945_4.mat	# filename for facies mosaic element point cloud coordinates
 
 24		# facies element number/code (useful only for readability)
 5		# facies element facies code
--0.11 0.11		# XY maxiumum migration rate km per iteration
-42 1		# Initial xy coordinate of facies element centroid, in km
+-0.25 -0.25		# XY maxiumum migration rate km per iteration
+21 1		# Initial xy coordinate of facies element centroid, in km
 0.6		# Mosaic element radius in km
-parameters/Microfilm_1945_15.mat	# filename for facies mosaic element point cloud coordinates
+parameters/Microfilm_1945_8.mat	# filename for facies mosaic element point cloud coordinates
 
 25		# facies element number/code (useful only for readability)
 5		# facies element facies code
--0.3 0.3	# XY maxiumum migration rate km per iteration
-47 2 	# Initial xy coordinate of facies element centroid, in km
-0.6		# Mosaic element radius in km
-parameters/Microfilm_1945_23.mat	# filename for facies mosaic element point cloud coordinates
+0.35 0.35	# XY maxiumum migration rate km per iteration
+24 2 	# Initial xy coordinate of facies element centroid, in km
+0.83		# Mosaic element radius in km
+parameters/Microfilm_1945_9.mat	# filename for facies mosaic element point cloud coordinates
+
+26		# facies element number/code (useful only for readability)
+1		# facies element facies code
+-0.08 -0.08		# XY maxiumum migration rate km per iteration
+25 3		# Initial xy coordinate of facies element centroid, in km
+21.0		# Mosaic element radius in km
+parameters/Sand_1945_1.mat	# filename for facies mosaic element point cloud coordinates
+
+27		# facies element number/code (useful only for readability)
+3		# facies element facies code
+0.35 -0.35		# XY maxiumum migration rate km per iteration
+27 14		# Initial xy coordinate of facies element centroid, in km
+18		# Mosaic element radius in km
+parameters/Seagrass_1945_4.mat	# filename for facies mosaic element point cloud coordinates
+
+28		# facies element number/code (useful only for readability)
+1		# facies element facies code
+-0.08 -0.08		# XY maxiumum migration rate km per iteration
+24 4		# Initial xy coordinate of facies element centroid, in km
+21.0		# Mosaic element radius in km
+parameters/Sand_1945_1.mat	# filename for facies mosaic element point cloud coordinates

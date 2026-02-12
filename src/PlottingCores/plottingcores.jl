@@ -83,35 +83,35 @@ function draw_multiple_cores(layers, facies, core_coords)
     return fig
 end
 
-function plot_cross_section(layers, facies)
+# function plot_cross_section(layers, facies)
 
-    n_positions = size(layers)[1]
+#     n_positions = size(layers)[1]
     
-    fig = Figure(resolution = (20 * n_positions, 600))
+#     fig = Figure(resolution = (20 * n_positions, 600))
     
-    for pos in 1:n_positions
-        pos_layers = layers[pos, 50, :]
-        pos_facies = facies[pos, 50, :]
+#     for pos in 1:n_positions
+#         pos_layers = layers[pos, 50, :]
+#         pos_facies = facies[pos, 50, :]
         
-        if pos == 1
-            ax = Axis(fig[1, pos]; xlabel = "", ylabel = "Depth (m)", yreversed = false, xticks = ([], []))
-        else
-            ax = Axis(fig[1, pos]; xlabel = "", ylabel = "", yreversed = false, xticks = ([], []))
-        end
+#         if pos == 1
+#             ax = Axis(fig[1, pos]; xlabel = "", ylabel = "Depth (m)", yreversed = false, xticks = ([], []))
+#         else
+#             ax = Axis(fig[1, pos]; xlabel = "", ylabel = "", yreversed = false, xticks = ([], []))
+#         end
         
-        subcore!(ax, pos_layers, pos_facies)
-    end
+#         subcore!(ax, pos_layers, pos_facies)
+#     end
     
-    facies_codes = [101, 103, 105]
-    facies_labels = ["ooidal grainstone", "ooidal packstone", "packstone"]
-    legend_elements = [PolyElement(color = get_facies_color(code)) for code in facies_codes]
-    Legend(fig[1, n_positions + 1], legend_elements, facies_labels)
+#     facies_codes = [101, 103, 105]
+#     facies_labels = ["ooidal grainstone", "ooidal packstone", "packstone"]
+#     legend_elements = [PolyElement(color = get_facies_color(code)) for code in facies_codes]
+#     Legend(fig[1, n_positions + 1], legend_elements, facies_labels)
     
-    return fig
-end
+#     return fig
+# end
 
-cross_fig = plot_cross_section(layers, reproj_facies)
-save("fig/STACKER_cross_section.png", cross_fig)
+# cross_fig = plot_cross_section(layers, reproj_facies)
+# save("fig/STACKER_cross_section.png", cross_fig)
 # calculate proportions of what faciesin each core
 
 function calculate_proportion_facies(core_layers, core_facies)
