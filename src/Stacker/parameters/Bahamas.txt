@@ -13,7 +13,7 @@ parameters/sealevel_sin.txt				# sea-level curve filename
 5		# Number of facies in the model
 
 1		# facies element number/code (useful only for readability), sand
-320.0		# maximum deposition rate, m/My
+900.0		# maximum deposition rate, m/My
 1 1 0	# RGB colour code coral yellow
 
 2		# facies element number/code (useful only for readability), coral

@@ -4,6 +4,7 @@ using Rasters
 using GeoDataFrames
 
 const PATH = "data/vintage.shp"
+const PATH2 = "data/modern_individual_Project.shp"
 gdf = GeoDataFrames.read(PATH)
 
  function get_extent(gdf)
@@ -52,6 +53,11 @@ end
 
 xmin, xmax, ymin, ymax = get_extent(gdf)
 ras = rasterize_layer(gdf, 1400, 2400, xmin, xmax, ymin, ymax)
+ras_modern = rasterize_layer(GeoDataFrames.read(PATH2), 1400, 2400, xmin, xmax, ymin, ymax)
+
+SE_vint = cal_spt_entropy(ras.data, true)
+SE_modern = cal_spt_entropy(ras_modern.data, true)
+
 
 function plot_grid_effect(path, nx::Vector{Int}, ny::Vector{Int}) 
     gdf = GeoDataFrames.read(path)

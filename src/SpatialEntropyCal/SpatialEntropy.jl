@@ -3,7 +3,7 @@ using CairoMakie
 export cal_spt_entropy, plot_entropy_over_time
 const PATH = "src/Stacker/modelResults/FaciesMosaic.mat"
 const TIMESLICES = 1:200:5000 |> collect
-
+append!(TIMESLICES, 5000)
 
 function extract_timeslice(PATH::String, timeslice::Int)
     data = matread(PATH)
@@ -19,8 +19,10 @@ function extract_cross_section(PATH::String, cross_section_idx::Int)
     stratadata = data["strata"] 
     facies = stratadata["facies"] 
     layers = stratadata["layers"] 
-    return facies[cross_section_idx, :, :], layers[cross_section_idx, :, :] 
+    return facies[:, cross_section_idx, :], layers[:, cross_section_idx, :] 
 end   
+
+
 
 
 function cal_spt_entropy(facies_slice)
@@ -77,6 +79,7 @@ function cal_spt_entropy(facies_slice, skip_background::Bool)
     return count / total_count
 end
 
+
 function plot_entropy_over_time(PATH::String, timeslices::Vector{Int})
     entropies = Float64[]
     for timeslice in timeslices
@@ -94,4 +97,6 @@ function plot_entropy_over_time(PATH::String, timeslices::Vector{Int})
     display(fig)
 end
 
-plot_entropy_over_time(PATH, TIMESLICES)
+
+fig = plot_entropy_over_time(PATH, TIMESLICES)
+save("fig/spatial_entropy_over_time.png", fig)

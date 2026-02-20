@@ -6,7 +6,7 @@ data = matread("src/Stacker/modelResults/FaciesMosaic.mat")
 variables = keys(data)
 stratadata = data["strata"]
 params = data["params"]
-
+const Y_POS = 50
 #extract data
 facies = stratadata["facies"] 
 layers = stratadata["layers"]
@@ -40,7 +40,7 @@ function draw_sub_core!(ax, layers::Array{Float64}, facies::Array{Int64}, core_i
     core_x, core_y = core_coords[core_idx]
     core_layers = layers[core_x, core_y, :]
     core_facies = facies[core_x, core_y, :]
-    subcore!(ax, core_layers, core_facies)
+    subcore!(ax, core_layers, core_facies, 0, 1)
 
 end
 
@@ -48,23 +48,25 @@ function draw_sub_core!(ax, layers::Vector{<:Vector}, facies::Vector{<:Vector}, 
     core_layers = layers[core_idx]
     core_facies = facies[core_idx]
     println("calling realcorefunction")
-    subcore!(ax, core_layers, core_facies)
+    subcore!(ax, core_layers, core_facies, 0, 1)
 end
 
-function subcore!(ax, core_layers, core_facies)
+function subcore!(ax, core_layers, core_facies,x_left,x_right)
     core_layers_norm = core_layers .- core_layers[1] 
+    rects = Vector{Rect2f}(undef, length(core_layers_norm) - 1)
+    colors = Vector{Symbol}(undef, length(core_layers_norm) - 1)    
     for idx in eachindex(core_layers_norm)[2:end]
         top = core_layers_norm[idx]
         bottom = core_layers_norm[idx-1]
-        
-        hspan!(ax, bottom, top; color = get_facies_color(core_facies[idx]), alpha = get_facies_alpha(core_facies[idx]))
-
+        rects[idx-1]  = Rect2f(x_left, bottom, x_right - x_left, top - bottom)
+        colors[idx-1] = get_facies_color(core_facies[idx])        
     end
+    poly!(ax, rects, color = colors)
 end
 
 function draw_multiple_cores(layers, facies, core_coords)
     n_cores = length(core_coords)
-    fig = Figure(resolution = (200 * n_cores, 600))
+    fig = Figure(resolution = (210 * n_cores, 600))
     for i in eachindex(core_coords)
         if i == 1
             ax = Axis(fig[1, i]; xlabel = "", ylabel = "Depth (m)", yreversed = false, xticks = ([], []))
@@ -83,36 +85,32 @@ function draw_multiple_cores(layers, facies, core_coords)
     return fig
 end
 
-# function plot_cross_section(layers, facies)
+function plot_cross_section(layers, facies, y_position)
+    n_positions = size(layers, 1)
+    fig = Figure(resolution = (20 * n_positions, 600))
+    ax = Axis(fig[1, 1]; xlabel = "Position", ylabel = "Depth (m)", yreversed = false)
+    layers_slice = layers[:, y_position, :]  
+    facies_slice = facies[:, y_position, :]
+    for pos in 1:n_positions
+        pos_layers = layers_slice[pos, :]
+        pos_facies = facies_slice[pos, :]
+        x_left  = pos - 1
+        x_right = pos
+        subcore!(ax, pos_layers, pos_facies, x_left, x_right)
+    end
 
-#     n_positions = size(layers)[1]
-    
-#     fig = Figure(resolution = (20 * n_positions, 600))
-    
-#     for pos in 1:n_positions
-#         pos_layers = layers[pos, 50, :]
-#         pos_facies = facies[pos, 50, :]
-        
-#         if pos == 1
-#             ax = Axis(fig[1, pos]; xlabel = "", ylabel = "Depth (m)", yreversed = false, xticks = ([], []))
-#         else
-#             ax = Axis(fig[1, pos]; xlabel = "", ylabel = "", yreversed = false, xticks = ([], []))
-#         end
-        
-#         subcore!(ax, pos_layers, pos_facies)
-#     end
-    
-#     facies_codes = [101, 103, 105]
-#     facies_labels = ["ooidal grainstone", "ooidal packstone", "packstone"]
-#     legend_elements = [PolyElement(color = get_facies_color(code)) for code in facies_codes]
-#     Legend(fig[1, n_positions + 1], legend_elements, facies_labels)
-    
-#     return fig
-# end
+    facies_codes  = [101, 103, 105]
+    facies_labels = ["ooidal grainstone", "ooidal packstone", "packstone"]
+    legend_elements = [PolyElement(color = get_facies_color(code)) for code in facies_codes]
+    Legend(fig[1, 2], legend_elements, facies_labels)
 
-# cross_fig = plot_cross_section(layers, reproj_facies)
-# save("fig/STACKER_cross_section.png", cross_fig)
-# calculate proportions of what faciesin each core
+    return fig
+end
+
+cross_fig = plot_cross_section(layers, reproj_facies, Y_POS)
+save("fig/STACKER_cross_section.png", cross_fig)
+
+#calculate proportions of what faciesin each core
 
 function calculate_proportion_facies(core_layers, core_facies)
     total_thickness = core_layers[end] - core_layers[1]
