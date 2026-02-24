@@ -47,13 +47,13 @@ function rasterize_layer(gdf, nx, ny, xmin, xmax, ymin, ymax)
         fill=gdf.class_id,
         missingval=Int16(0)
     )
-    return ras
+    return ras, class_map
 end
 
 
 xmin, xmax, ymin, ymax = get_extent(gdf)
-ras = rasterize_layer(gdf, 1400, 2400, xmin, xmax, ymin, ymax)
-ras_modern = rasterize_layer(GeoDataFrames.read(PATH2), 1400, 2400, xmin, xmax, ymin, ymax)
+ras,class_map = rasterize_layer(gdf, 1400, 2400, xmin, xmax, ymin, ymax)
+ras_modern,class_map_modern = rasterize_layer(GeoDataFrames.read(PATH2), 1400, 2400, xmin, xmax, ymin, ymax)
 
 SE_vint = cal_spt_entropy(ras.data, true)
 SE_modern = cal_spt_entropy(ras_modern.data, true)
@@ -77,30 +77,54 @@ end
 
 fig1 = plot_grid_effect(PATH, [14000, 1400, 700, 350, 175], [24000, 2400, 1200, 600, 300]) 
 
-function visualize_habitat(ras)
-    fig = Figure(size = (800, 700))
+function visualize_habitat(ras,class_map)
+    fig = Figure(size=(1000, 800))
     ax = Axis(fig[1, 1], 
-        title = "Rasterized Habitat",
         xlabel = "Longitude / X",
         ylabel = "Latitude / Y",
-        aspect = DataAspect() 
+        aspect = DataAspect()
     )
 
-plt = heatmap!(ax, ras; 
-        colormap = :tab10, 
-        colorrange = (1, 8), 
-        lowclip = :white     
+    habitat_colors = Dict(
+        "Hardground" => :lightblue,
+        "Island" => :black,
+        "Macroalgae" => :gray,
+        "Microfilm" => :red,
+        "Reef" => :darkblue,
+        "Sand" => :yellow,
+        "Seagrass" => :green,
+        "Slope" => :purple
+    )
+    
+    n_classes = length(class_map)
+    colors = Vector{Symbol}(undef, n_classes)
+    labels = Vector{String}(undef, n_classes)
+    
+    for (class_name, class_id) in class_map
+        colors[class_id] = get(habitat_colors, class_name, :white)
+        labels[class_id] = class_name
+    end
+    
+    cmap = cgrad(colors, n_classes, categorical=true)
+    
+    plt = heatmap!(ax, ras; 
+        colormap = cmap,
+        colorrange = (1, n_classes),
+        lowclip = :white
     )
 
-
-    labels = ["HG", "ISLD", "MAC", "MIC", "RF", "SD", "SG", "SP"]
     Colorbar(fig[1, 2], plt, 
-        ticks = (1:8, labels),
-        label = "Habitat"
+        label = "Habitat Type",
+        ticks = (1:n_classes, labels)
     )
 
     return fig
 end
 
 
-fig2 = visualize_habitat(ras)
+
+fig2 = visualize_habitat(ras, class_map)
+fig3 = visualize_habitat(ras_modern, class_map_modern)
+
+save("fig/vintage_habitat.png", fig2)
+save("fig/modern_habitat.png", fig3)

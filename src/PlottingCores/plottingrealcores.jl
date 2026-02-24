@@ -3,7 +3,7 @@ using CairoMakie
 include("plottingcores.jl")
 
 # get core layers from manual measurements
-core_collection = ["core_78_3_7", "core_78_3_18", "core_78_3_18", "core_78_10_13", "core_78_3_48","core_2_43"]
+core_collection = ["core_78_3_7", "core_78_3_18", "core_78_10_13", "core_78_3_48","core_2_43"]
 
 core_78_3_7 = [-4.6, -2]
 
