@@ -1,6 +1,7 @@
 module PlottingCores
 using MAT
 using CairoMakie
+using CSV, DataFrames
 
 data = matread("src/Stacker/modelResults/FaciesMosaic.mat")
 variables = keys(data)
@@ -138,8 +139,10 @@ function calculate_all_cores_proportions(layers, facies, core_coords)
         proportions = calculate_proportion_facies(core_layers, core_facies)
         push!(all_proportions, proportions)
     end
+    df = DataFrame(all_proportions)
+    df.core = 1:nrow(df)
+    CSV.write("results/STACKER_cores_proportions.csv", df)  
     return all_proportions
-    write("results/STACKER_cores_proportions.txt", all_proportions)
 end
 
 
