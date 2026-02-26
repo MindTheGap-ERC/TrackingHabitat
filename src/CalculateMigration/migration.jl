@@ -83,11 +83,6 @@ directions = calculate_directions(data)
 
 CSV.write("results/seagrass_migration_distances_directions.csv", DataFrame(Distance_m=distances, Direction_deg=directions))
 
-open("results/migration_data.txt", "w") do io
-    for (dir, dist) in zip(directions, distances)
-        println(io, "$dir $dist")
-    end
-end
 data = hcat(directions, distances)
 
 max_dist = maximum(distances)  
