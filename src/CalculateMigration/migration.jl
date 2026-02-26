@@ -38,18 +38,18 @@ new_data = DataFrame(
     centroids = centroids
 )
 vintage= filter(row -> row[2] == 1945.0, eachrow(new_data))
-mdoern = filter(row -> row[2] == 2019.0, eachrow(new_data))
+modern = filter(row -> row[2] == 2019.0, eachrow(new_data))
 data = unstack(new_data, :trackID, :Year, :centroids)
 
 function calculate_distances(data)
     n = length(data[:,1])
     distances = Float64[]
     for i in 1:n
-        if ismissing(data[i, "1945"]) || ismissing(data[i, "2019"])
+        if ismissing(data[i, "1945.0"]) || ismissing(data[i, "2019.0"])
             continue
         else
-        point1 = data[i, "1945"]
-        point2 = data[i, "2019"]
+        point1 = data[i, "1945.0"]
+        point2 = data[i, "2019.0"]
         dist = euclidean(point1, point2)
         push!(distances, dist)
 
