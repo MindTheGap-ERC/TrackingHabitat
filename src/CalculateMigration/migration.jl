@@ -83,8 +83,6 @@ directions = calculate_directions(data)
 
 CSV.write("results/seagrass_migration_distances_directions.csv", DataFrame(Distance_m=distances, Direction_deg=directions))
 
-data = hcat(directions, distances)
-
 max_dist = maximum(distances)  
 fig = GMT.scatter(
     distances, 
