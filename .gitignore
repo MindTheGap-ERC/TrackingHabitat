@@ -3,3 +3,8 @@
 .RData
 .Ruserdata
 src/Stacker/modelResults/*.mat
+*.mat
+*.rds
+*.csv
+*.png
+*.txt

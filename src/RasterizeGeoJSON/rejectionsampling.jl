@@ -131,7 +131,6 @@ function normalize_points(points::Vector{Vector{Float64}}, min_x, max_x, min_y, 
         norm_y = 2 * (p[2] - min_y) / scaling_factor - 1
         push!(normalized_points, [norm_x, norm_y])
     end
-    println("scaling factor is ", scaling_factor/1000, " km")
 
     return hcat(normalized_points...)' |> collect, scaling_factor/1000
 end
@@ -165,8 +164,8 @@ end
 function batch_process_output!(INPUT,txtpath)
     data = import_data(INPUT.JSONpath)
     scaling_factor = []
-    for specie in Species
-        features = select_patch(data, specie) |> sort_and_select
+    for s in Species
+        features = select_patch(data, s) |> sort_and_select
         for f in features
             trackID, scaling = process_feature(f, INPUT)
             push!(scaling_factor,(trackID, scaling))

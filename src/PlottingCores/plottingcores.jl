@@ -3,6 +3,8 @@ using MAT
 using CairoMakie
 using CSV, DataFrames
 
+#download from zenodo
+
 data = matread("src/Stacker/modelResults/FaciesMosaic.mat")
 variables = keys(data)
 stratadata = data["strata"]
@@ -132,17 +134,19 @@ function calculate_proportion_facies(core_layers, core_facies)
 end
 
 function calculate_all_cores_proportions(layers, facies, core_coords)
-    all_proportions = []
+
+    all_codes = Int[]
+    all_props = Vector{Dict{Int64,Float64}}()
     for (core_x, core_y) in core_coords
         core_layers = layers[core_x, core_y, :]
         core_facies = facies[core_x, core_y, :]
-        proportions = calculate_proportion_facies(core_layers, core_facies)
-        push!(all_proportions, proportions)
+        props = calculate_proportion_facies(core_layers, core_facies)
+        push!(all_props, props)
+
     end
-    df = DataFrame(all_proportions)
-    df.core = 1:nrow(df)
-    CSV.write("results/STACKER_cores_proportions.csv", df)  
-    return all_proportions
+
+
+    CSV.write("results/STACKER_cores_proportions.csv", df)
 end
 
 
