@@ -8,6 +8,9 @@ using CairoMakie
 export get_centroids, import_data
 using GMT
 filepath = "results/tracked_species.geojson"
+
+const target_species = "Microfilm"
+
 function import_data(file_path)
     data = ArchGDAL.read(file_path)
     Tabledata = DataFrame(ArchGDAL.getlayer(data, 0))
@@ -53,7 +56,7 @@ function calculate_distances(data)
         else
         point1 = data[i, "1945"]
         point2 = data[i, "2019"]
-        dist = chebyshev(point1, point2)
+        dist = euclidean(point1, point2)
         push!(distances, dist)
 
         end
@@ -84,12 +87,6 @@ end
 
 directions = calculate_directions(data)
 
-# open("results/seagrass_migration_data.txt", "w") do io
-#     for (dir, dist) in zip(directions, distances)
-#         println(io, "$dir $dist")
-#     end
-# end
-
 result = DataFrame(Direction = directions, Distance = distances)
 data = hcat(data, result)
 rename!(data, Symbol("1945") => :vintage)
@@ -104,16 +101,12 @@ function extract_species_data(data::DataFrame, species_name::AbstractString)
     return dropmissing(result_df[:, [:trackID, :vintage, :Direction, :Distance]])
 end
 
-target_species = "Microfilm"
+
 extract_data = extract_species_data(data, target_species)
 
 
-open("results/$(target_species)_migration_data.txt", "w") do io
-    for (tag, dir, dist) in zip(extract_data.trackID, extract_data.Direction, extract_data.Distance)
+CSV.write("results/$(target_species)_migration_data.csv", DataFrame(extract_data.trackID, extract_data.Direction, extract_data.Distance))
         
-        println(io, "$tag $dir $dist")
-    end
-end
 
 function plot_polar(tag, directions, distances)
     f = Figure(resolution = (800, 800))

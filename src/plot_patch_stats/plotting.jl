@@ -1,4 +1,4 @@
-using GLMakie
+using CairoMakie
 using DataFrames
 using XLSX
 using Statistics
@@ -6,29 +6,29 @@ using Statistics
 # Load the data
 df_Abacos = XLSX.readtable("data/Aabcos.xlsx","sum") |> DataFrame
 df_Joulters =XLSX.readtable("data/Joulters.xlsx","sum") |> DataFrame
-
+const AREA = 60
 # Data preparartion
-df_Abacos_seagrass_1945 = filter(row -> row.v_class == "Seagrass" && row.v_area > 60, df_Abacos) |> 
+df_Abacos_seagrass_1945 = filter(row -> row.v_class == "Seagrass" && row.v_area > AREA, df_Abacos) |> 
                           row -> log10.(row.v_area)
 
 df_Abacos_seagrass_2019 = filter(row -> !ismissing(row.m_class) &&
                                         !ismissing(row.m_area) &&
                                         row.m_class == "Seagrass" &&
-                                        row.m_area > 60,
+                                        row.m_area > AREA,
                                  df_Abacos) |> 
                           row -> log10.(row.m_area)
 
 df_Joulters_seagrass_1945 = filter(row -> !ismissing(row.v_class) &&
                                         !ismissing(row.v_area) &&
                                         row.v_class == "Seagrass" &&
-                                        row.v_area > 60,
+                                        row.v_area > AREA,
                                  df_Joulters) |> 
                           row -> log10.(row.v_area)
 
 df_Joulters_seagrass_2019 = filter(row -> !ismissing(row.m_class) &&
                                         !ismissing(row.m_area) &&
                                         row.m_class == "Seagrass" &&
-                                        row.m_area > 60,
+                                        row.m_area > AREA,
                                  df_Joulters) |> 
                           row -> log10.(row.m_area)
 
@@ -150,7 +150,7 @@ return prop_A_change, prop_J_change
 # Plotting the proportion change
 
 fig2 = Figure(resolution = (800, 400))
-ax5 = Axis(fig2[1, 1], xlabel = L"Log(Area \ (m^2))", ylabel = "Proportion Change (%)", title = "Proportion Change in Seagrass Patch Numbers", limits = (1.5,7.5,nothing,nothing))      
+ax5 = Axis(fig2[1, 1], xlabel = L"Log(Area \ (m^2))", ylabel = "Proportion Change (%)", title = "Proportion Change in Seagrass Patch Numbers", limits = (1.5,5.5,nothing,nothing))      
 barplot!(ax5, bin_mids .- 0.1, prop_A_change, color = :grey, label = "Abacos", width = 0.2)
 barplot!(ax5, bin_mids .+ 0.1, prop_J_change, color = :brown, label = "Joulters Cay", width = 0.2)
 
@@ -159,7 +159,7 @@ fig2
 save("proportion_change.png", fig2)
 
 # Save the proportion change data to an Excel file
-XLSX.writetable("prop_change.xlsx", DataFrame(Bin=1:nbins, Prop_A_Change=prop_A_change, Prop_J_Change=prop_J_change), overwrite=true)
+CSV.write("./results/prop_change.csv", DataFrame(Bin=1:nbins, Prop_A_Change=prop_A_change, Prop_J_Change=prop_J_change), overwrite=true)
 
 # individual ED calculation
 A_ed_2019_vec = eg_Abacos_seagrass_2019 ./  10 .^ df_Abacos_seagrass_2019

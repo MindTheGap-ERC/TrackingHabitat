@@ -4,6 +4,7 @@ using Images
 using Meshes
 using CairoMakie
 using MAT
+using CSV
 using Statistics
 struct Inputdata
     JSONpath::String
@@ -13,7 +14,7 @@ end
 
 const PATH = "results/tracked_species.geojson"
 
-const txtPATH = "results/scaling_factor.txt"
+const csvPATH = "results/scaling_factor.csv"
 
 const TARGET_NUMBER = 1000
 
@@ -161,7 +162,7 @@ function process_feature(f, INPUT)
     return trackID, scaling
 end
 
-function batch_process_output!(INPUT,txtpath)
+function batch_process_output!(INPUT,path)
     data = import_data(INPUT.JSONpath)
     scaling_factor = []
     for s in Species
@@ -172,15 +173,8 @@ function batch_process_output!(INPUT,txtpath)
         end
     end
 
-    open(txtpath,"w") do io
-    println(io, "TrackID\tScaling_Factor_km")
-
-    for (trackID, scaling) in scaling_factor
-        println(io, "$(trackID)\t$(scaling)")
-    end
-
-    end
+    CSV.write(path, DataFrame(scaling_factor))
 end
 
 Species = ["Seagrass", "Sand", "Macroalgae", "Microfilm", "Reef"]
-batch_process_output!(INPUT,txtPATH)
+batch_process_output!(INPUT,csvPATH)

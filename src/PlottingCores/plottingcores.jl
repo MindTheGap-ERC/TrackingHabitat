@@ -2,8 +2,59 @@ module PlottingCores
 using MAT
 using CairoMakie
 using CSV, DataFrames
-
+using Downloads
+using ZipFile
 #download from zenodo
+
+const OUTPATH = "./data/FaciesMosaic.mat"
+const URL = "https://zenodo.org/records/18786845/files/Supllementary%20Data%20for%20Bahamas%20habitat.zip?download=1"
+const TARGET_MAT = "Supplement/S7_STACKER_input_and_result/Results/FaciesMosaic.mat"
+
+function download_and_extract_mat(url::String, target_mat::String, output_path::String)
+    temp_zip = "temp_data.zip"
+    
+    println("Downloading from Zenodo...")
+    Downloads.download(url, temp_zip)
+
+is_zip = open(temp_zip, "r") do io
+        if eof(io) return false end
+        header = read(io, 2) # Read the first 2 bytes
+        return header == [0x50, 0x4b] 
+    end
+
+    if !is_zip
+        content = read(temp_zip, String)
+        rm(temp_zip)
+        println("First 100 chars of downloaded file: ", first(content, 100))
+        error("Downloaded file is NOT a zip. Check your Zenodo URL.")
+    end
+
+    zarchive = ZipFile.Reader(temp_zip)
+    found = false
+    try
+        for f in zarchive.files
+            if f.name == target_mat
+                println("Found $target_mat. Extracting...")
+                open(output_path, "w") do io
+                    write(io, read(f))
+                end
+                found = true
+                break
+            end
+        end
+    finally
+        close(zarchive)
+        rm(temp_zip)
+    end
+
+    if found
+        return matread(output_path)
+    else
+        error("File $target_mat not found inside the zip.")
+    end
+end
+
+download_and_extract_mat(URL, TARGET_MAT, OUTPATH)
 
 data = matread("src/Stacker/modelResults/FaciesMosaic.mat")
 variables = keys(data)
@@ -146,7 +197,7 @@ function calculate_all_cores_proportions(layers, facies, core_coords)
     end
 
 
-    CSV.write("results/STACKER_cores_proportions.csv", df)
+    CSV.write("results/STACKER_cores_proportions.csv", DataFrame(all_props))
 end
 
 
