@@ -9,7 +9,7 @@ export get_centroids, import_data
 using GMT
 filepath = "results/tracked_species.geojson"
 
-const target_species = "Microfilm"
+const target_species = "Reef"
 
 function import_data(file_path)
     data = ArchGDAL.read(file_path)
@@ -105,7 +105,7 @@ end
 extract_data = extract_species_data(data, target_species)
 
 
-CSV.write("results/$(target_species)_migration_data.csv", DataFrame(extract_data.trackID, extract_data.Direction, extract_data.Distance))
+CSV.write("results/$(target_species)_migration_data.csv", DataFrame(trackID=extract_data.trackID, Direction=extract_data.Direction, Distance=extract_data.Distance))
         
 
 function plot_polar(tag, directions, distances)

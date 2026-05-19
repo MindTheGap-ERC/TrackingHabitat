@@ -2,8 +2,8 @@ using MAT
 using CairoMakie
 export cal_spt_entropy, plot_entropy_over_time
 const PATH = "src/Stacker/modelResults/FaciesMosaic.mat"
-const TIMESLICES = 1:200:5000 |> collect
-append!(TIMESLICES, 5000)
+const TIMESLICES = 1:5:100 |> collect
+append!(TIMESLICES, 100)
 
 function extract_timeslice(PATH::String, timeslice::Int)
     data = matread(PATH)
@@ -27,6 +27,8 @@ end
 
 function cal_spt_entropy(facies_slice)
     x_size, y_size = size(facies_slice)
+    x_size = 100
+    y_size = 100
     total_count = (x_size -1) * y_size + x_size * (y_size - 1) 
     count = 0
     for x in 1:x_size-1
@@ -48,6 +50,8 @@ end
 
 function cal_spt_entropy(facies_slice, skip_background::Bool)
     x_size, y_size = size(facies_slice)
+    x_size = 100
+    y_size = 100
     count = 0
     total_count = 0
 
@@ -89,14 +93,18 @@ function plot_entropy_over_time(PATH::String, timeslices::Vector{Int})
     end
 
     fig = Figure()
-    ax = Axis(fig[1, 1], xlabel="Time Slice", ylabel="Spatial Entropy")
+    ax = CairoMakie.Axis(fig[1, 1], xlabel="Time Slice", ylabel="Spatial Entropy")
     lines!(ax, timeslices, entropies)
     vert_sp_etrp = cal_spt_entropy(extract_cross_section(PATH, 25)[1], true)
     lines!(ax, [timeslices[1], timeslices[end]], [vert_sp_etrp, vert_sp_etrp], color=:red, label="Cross-section Entropy") 
     axislegend(ax)
-    display(fig)
+    
+    # Return figure and entropy range
+    entropy_min = minimum(entropies)
+    entropy_max = maximum(entropies)
+    return fig, (entropy_min, entropy_max)
 end
 
 
-fig = plot_entropy_over_time(PATH, TIMESLICES)
+fig,ent_range = plot_entropy_over_time(PATH, TIMESLICES)
 save("fig/spatial_entropy_over_time.png", fig)

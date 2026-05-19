@@ -9,7 +9,8 @@ using ZipFile
 const OUTPATH = "./data/FaciesMosaic.mat"
 const URL = "https://zenodo.org/records/18786845/files/Supllementary%20Data%20for%20Bahamas%20habitat.zip?download=1"
 const TARGET_MAT = "Supplement/S7_STACKER_input_and_result/Results/FaciesMosaic.mat"
-
+const OUTPATH = "src/Stacker/modelResults/FaciesMosaic.mat"
+const THRESHOLD = 0.001   # this number means no observational window applied. We also use 0.01, 0.05 and 0.1 for sensitivity test.
 function download_and_extract_mat(url::String, target_mat::String, output_path::String)
     temp_zip = "temp_data.zip"
     
@@ -60,9 +61,9 @@ data = matread("src/Stacker/modelResults/FaciesMosaic.mat")
 variables = keys(data)
 stratadata = data["strata"]
 params = data["params"]
-const Y_POS = 50
+const Y_POS = 40
 #extract data
-facies = stratadata["facies"] 
+facies = stratadata["facies"]
 layers = stratadata["layers"]
 
 # how much facies we have?
@@ -77,7 +78,7 @@ unique(reproj_facies)
 # faciesMosaicElementYInc is 25*1: rows are each patch, columns are y increment per time step
 
 # core locations
-core_coords = [(25, 50), (50, 50), (75, 50)] # STACKER plots 1, 25, 50, 75, 99 for x.
+core_coords = [(25, 40), (50, 40), (75, 40)] # STACKER plots 1, 25, 50, 75, 99 for x.
 
 # define functions for core
 function get_facies_color(facies_code)
@@ -90,11 +91,11 @@ function get_facies_alpha(facies_code)
     return get(facies_alphas, facies_code, 1.0)
 end
 
-function draw_sub_core!(ax, layers::Array{Float64}, facies::Array{Int64}, core_idx, core_coords)
+function draw_sub_core!(ax, layers::Array{Float64}, facies::Array{Int64}, core_idx, core_coords, threshold)
     core_x, core_y = core_coords[core_idx]
     core_layers = layers[core_x, core_y, :]
     core_facies = facies[core_x, core_y, :]
-    subcore!(ax, core_layers, core_facies, 0, 1)
+    subcore!(ax, core_layers, core_facies, 0, 1, threshold)
 
 end
 
@@ -103,6 +104,51 @@ function draw_sub_core!(ax, layers::Vector{<:Vector}, facies::Vector{<:Vector}, 
     core_facies = facies[core_idx]
     println("calling realcorefunction")
     subcore!(ax, core_layers, core_facies, 0, 1)
+end
+
+function dominant_facies_in_window(core_layers, core_facies, win_bottom, win_top)
+    thickness_map = Dict{Int64, Float64}()
+
+    for idx in 2:length(core_layers)
+        layer_bot = core_layers[idx - 1]
+        layer_top = core_layers[idx]
+
+        overlap_bot = max(layer_bot, win_bottom)
+        overlap_top = min(layer_top, win_top)
+
+        if overlap_top > overlap_bot
+            facies = core_facies[idx]
+            thickness_map[facies] = get(thickness_map, facies, 0.0) + (overlap_top - overlap_bot)
+        end
+    end
+
+    isempty(thickness_map) && return core_facies[2] 
+    return argmax(thickness_map)
+end
+
+function subcore!(ax, core_layers, core_facies, x_left, x_right, threshold)
+    core_layers_norm = core_layers .- core_layers[1]
+
+    rects  = Vector{Rect2f}(undef, length(core_layers_norm) - 1)
+    colors = Vector{Symbol}(undef, length(core_layers_norm) - 1)
+
+    half_w = threshold / 2.0
+    total  = core_layers_norm[end]        
+    for idx in eachindex(core_layers_norm)[2:end]
+        bottom = core_layers_norm[idx - 1]
+        top    = core_layers_norm[idx]
+
+        mid        = (bottom + top) / 2.0
+        win_bottom = max(0.0,  mid - half_w)
+        win_top    = min(total, mid + half_w)
+
+        dominant = dominant_facies_in_window(core_layers_norm, core_facies, win_bottom, win_top)
+
+        rects[idx - 1]  = Rect2f(x_left, bottom, x_right - x_left, top - bottom)
+        colors[idx - 1] = get_facies_color(dominant)
+    end
+
+    poly!(ax, rects, color = colors)
 end
 
 function subcore!(ax, core_layers, core_facies,x_left,x_right)
@@ -118,7 +164,7 @@ function subcore!(ax, core_layers, core_facies,x_left,x_right)
     poly!(ax, rects, color = colors)
 end
 
-function draw_multiple_cores(layers, facies, core_coords)
+function draw_multiple_cores(layers, facies, core_coords, threshold)
     n_cores = length(core_coords)
     fig = Figure(resolution = (210 * n_cores, 600))
     for i in eachindex(core_coords)
@@ -127,7 +173,7 @@ function draw_multiple_cores(layers, facies, core_coords)
         else
             ax = Axis(fig[1, i]; xlabel = "", ylabel = "", yreversed = false, xticks = ([], []))
         end
-        draw_sub_core!(ax, layers, facies, i, core_coords)
+        draw_sub_core!(ax, layers, facies, i, core_coords, threshold)
         
     end
 
@@ -139,7 +185,7 @@ function draw_multiple_cores(layers, facies, core_coords)
     return fig
 end
 
-function plot_cross_section(layers, facies, y_position)
+function plot_cross_section(layers, facies, y_position, threshold)
     n_positions = size(layers, 1)
     fig = Figure(resolution = (20 * n_positions, 600))
     ax = Axis(fig[1, 1]; xlabel = "Position", ylabel = "Depth (m)", yreversed = false)
@@ -150,19 +196,43 @@ function plot_cross_section(layers, facies, y_position)
         pos_facies = facies_slice[pos, :]
         x_left  = pos - 1
         x_right = pos
-        subcore!(ax, pos_layers, pos_facies, x_left, x_right)
+        subcore!(ax, pos_layers, pos_facies, x_left, x_right, threshold)
     end
 
-    facies_codes  = [101, 103, 105]
-    facies_labels = ["ooidal grainstone", "ooidal packstone", "packstone"]
+    facies_codes  = [101, 102, 103, 105]
+    facies_labels = ["ooidal grainstone", "skeletal grainstone", "ooidal packstone", "packstone"]
     legend_elements = [PolyElement(color = get_facies_color(code)) for code in facies_codes]
     Legend(fig[1, 2], legend_elements, facies_labels)
 
     return fig
 end
 
-cross_fig = plot_cross_section(layers, reproj_facies, Y_POS)
+cross_fig = plot_cross_section(layers, reproj_facies, Y_POS, THRESHOLD)
 save("fig/STACKER_cross_section.png", cross_fig)
+
+const TIMESLICES = 1:10:100 |> collect
+append!(TIMESLICES, 100)
+
+function plot_timeslice(facies_3d, layers_3d, timeslice_indices)
+    n_slices = length(timeslice_indices)
+    fig = Figure(resolution = (300 * n_slices, 300))
+    
+    for (plot_idx, ts_idx) in enumerate(timeslice_indices)
+        ax = Axis(fig[1, plot_idx]; xlabel = "X Position", ylabel = "Y Position", title = "Time step $ts_idx")
+        facies_slice = facies_3d[:, :, ts_idx]
+        heatmap!(ax, facies_slice, colormap = [:white,:yellow, :blue, :green, :grey, :red])
+    end
+    
+    # facies_codes  = [101, 103, 105]
+    # facies_labels = ["ooidal grainstone", "ooidal packstone", "packstone"]
+    # legend_elements = [PolyElement(color = get_facies_color(code)) for code in facies_codes]
+    # Legend(fig[1, n_slices + 1], legend_elements, facies_labels)
+    return fig
+end
+
+
+timeslice_fig = plot_timeslice(facies, layers, TIMESLICES)
+save("fig/STACKER_timeslice.png", timeslice_fig)
 
 #calculate proportions of what faciesin each core
 
@@ -201,7 +271,7 @@ function calculate_all_cores_proportions(layers, facies, core_coords)
 end
 
 
-fig = draw_multiple_cores(layers, reproj_facies, core_coords) 
+fig = draw_multiple_cores(layers, reproj_facies, core_coords, THRESHOLD) 
 save("fig/STACKER_cores.png", fig)
 
 calculate_all_cores_proportions(layers, reproj_facies, core_coords)

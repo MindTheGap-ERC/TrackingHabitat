@@ -3,6 +3,8 @@ using ArchGDAL
 using Rasters
 using GeoDataFrames
 
+include("SpatialEntropy.jl")
+
 const PATH = "data/vintage.shp"
 const PATH2 = "data/modern_individual_Project.shp"
 gdf = GeoDataFrames.read(PATH)
@@ -64,19 +66,19 @@ function plot_grid_effect(path, nx::Vector{Int}, ny::Vector{Int})
     fig = Figure() 
     entropies = Float64[]
     for (i, (nx_i, ny_i)) in enumerate(zip(nx, ny)) 
-        raster = rasterize_layer(gdf, nx_i, ny_i, xmin, xmax, ymin, ymax) 
+        raster, map = rasterize_layer(gdf, nx_i, ny_i, xmin, xmax, ymin, ymax) 
         entropy = cal_spt_entropy(raster.data, true)
         push!(entropies, entropy)
         println("Grid number: $(nx_i)x$(ny_i), Spatial Entropy: $entropy")
     end
-        ax = Axis(fig[1, 1], xlabel="Number of grids", ylabel="Spatial Entropy") 
+        ax = Axis(fig[1, 1], xlabel="Number of grid cells", ylabel="Spatial Entropy") 
         lines!(ax, nx, entropies)
-     
+
     return fig 
 end 
 
-fig1 = plot_grid_effect(PATH, [14000, 1400, 700, 350, 175], [24000, 2400, 1200, 600, 300]) 
-
+fig1 = plot_grid_effect(PATH, [1400, 700, 350, 175, 100, 50], [2400, 1200, 600, 300, 175, 90]) 
+save("fig/grid_effect.png", fig1)
 function visualize_habitat(ras,class_map)
     fig = Figure(size=(1000, 800))
     ax = Axis(fig[1, 1], 
