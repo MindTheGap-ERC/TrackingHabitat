@@ -79,6 +79,7 @@ end
 
 fig1 = plot_grid_effect(PATH, [1400, 700, 350, 175, 100, 50], [2400, 1200, 600, 300, 175, 90]) 
 save("fig/grid_effect.png", fig1)
+
 function visualize_habitat(ras,class_map)
     fig = Figure(size=(1000, 800))
     ax = Axis(fig[1, 1], 

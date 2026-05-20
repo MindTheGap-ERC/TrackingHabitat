@@ -50,8 +50,7 @@ end
 
 function cal_spt_entropy(facies_slice, skip_background::Bool)
     x_size, y_size = size(facies_slice)
-    x_size = 100
-    y_size = 100
+
     count = 0
     total_count = 0
 

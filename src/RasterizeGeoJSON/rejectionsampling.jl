@@ -67,7 +67,6 @@ function calculate_coords(f)
     if isa(f.geometry, GeoJSON.Polygon)
         # Get outer ring (first coordinate array)
         ring = f.geometry.coordinates[1]
-        # Ensure closed
         if ring[1] != ring[end]
             println("Warning: Polygon not closed, closing it")
             push!(ring, ring[1])
@@ -75,15 +74,13 @@ function calculate_coords(f)
         return ring
         
     elseif isa(f.geometry, GeoJSON.MultiPolygon)
-        # Collect ALL vertices from ALL polygons
         for polygon in f.geometry.coordinates
-            # polygon[1] is the outer ring, polygon[2:end] are holes
-            for ring in polygon  # Include all rings (outer + holes)
+
+            for ring in polygon 
                 append!(coords, ring)
             end
         end
         
-        # Remove duplicates and ensure closed
         unique!(coords)
         if !isempty(coords) && coords[1] != coords[end]
             push!(coords, coords[1])
@@ -190,10 +187,8 @@ function process_feature(f, INPUT)
 
     cloud = rejection_sampling(minx, maxx, miny, maxy, coords, INPUT.Target_number)
     
-    # normalize_points now only takes the cloud as input
     norm_cloud, scaling = normalize_points(cloud)
     
-    # rotate_points now recenters automatically
     rotate_cloud = rotate_points(norm_cloud, INPUT.Rotate_angle)
     
     trackID = f.properties[:trackID]

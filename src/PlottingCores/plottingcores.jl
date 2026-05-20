@@ -7,7 +7,8 @@ using ZipFile
 #download from zenodo
 
 const OUTPATH = "./data/FaciesMosaic.mat"
-const URL = "https://zenodo.org/records/18786845/files/Supllementary%20Data%20for%20Bahamas%20habitat.zip?download=1"
+
+const URL = "https://zenodo.org/records/20306840/files/Supplement.zip?download=1"
 const TARGET_MAT = "Supplement/S7_STACKER_input_and_result/Results/FaciesMosaic.mat"
 const OUTPATH = "src/Stacker/modelResults/FaciesMosaic.mat"
 const THRESHOLD = 0.001   # this number means no observational window applied. We also use 0.01, 0.05 and 0.1 for sensitivity test.
