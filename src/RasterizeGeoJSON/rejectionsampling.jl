@@ -4,7 +4,10 @@ using Images
 using Meshes
 using CairoMakie
 using MAT
+using CSV
 using Statistics
+using DataFrames    
+
 struct Inputdata
     JSONpath::String
     Target_number::Int
@@ -13,11 +16,11 @@ end
 
 const PATH = "results/tracked_species.geojson"
 
-const txtPATH = "results/scaling_factor.txt"
+const csvPATH = "results/scaling_factor.csv"
 
-const TARGET_NUMBER = 500
+const TARGET_NUMBER = 8000
 
-const ANGLE = 135
+const ANGLE = 115
 
 const INPUT = Inputdata(PATH, TARGET_NUMBER,ANGLE)
 
@@ -59,27 +62,33 @@ end
 # feature collection: f -> feature -> geometry -> coordinates -> [1]
 # feature : f -> geometry -> coordinates -> [1]
 function calculate_coords(f)
-        println(typeof(f))
-        if isa(f.geometry, GeoJSON.Polygon) == true
-            if f.geometry.coordinates[1][1] == f.geometry.coordinates[1][end]
-            return f.geometry.coordinates[1]
-            else println("not a closed polygon") && return nothing
-            end
-        elseif isa(f.geometry, GeoJSON.MultiPolygon) == true
-            polys = Vector{Tuple{<:Real,<:Real}}()
-            for polygon in f.geometry.coordinates
-                append!(polys, polygon[1])
-            end
-            if polys[1] != polys[end]
-                push!(polys, polys[1]) 
-                return polys
-            else
-                return polys
-            end
-        else
-            println("not going to the loop!!!!!! error!!!!")
+    coords = Vector{Tuple{Float64, Float64}}()
+    
+    if isa(f.geometry, GeoJSON.Polygon)
+        # Get outer ring (first coordinate array)
+        ring = f.geometry.coordinates[1]
+        if ring[1] != ring[end]
+            println("Warning: Polygon not closed, closing it")
+            push!(ring, ring[1])
         end
+        return ring
+        
+    elseif isa(f.geometry, GeoJSON.MultiPolygon)
+        for polygon in f.geometry.coordinates
 
+            for ring in polygon 
+                append!(coords, ring)
+            end
+        end
+        
+        unique!(coords)
+        if !isempty(coords) && coords[1] != coords[end]
+            push!(coords, coords[1])
+        end
+        return coords
+    else
+        error("Unsupported geometry type: $(typeof(f.geometry))")
+    end
 end
 
 function get_bbx(coords)
@@ -88,6 +97,12 @@ function get_bbx(coords)
     min_x, max_x = extrema(xs)
     min_y, max_y = extrema(ys)
     return min_x, max_x, min_y, max_y
+end
+
+function get_bbx_from_samples(sampled_points::Vector{Vector{Float64}})
+    xs = [p[1] for p in sampled_points]
+    ys = [p[2] for p in sampled_points]
+    return extrema(xs)..., extrema(ys)...
 end
 
 function point_in_polygon(x, y, polygon)
@@ -122,28 +137,48 @@ function rejection_sampling(min_x, max_x, min_y, max_y, coords, target_number)
     return sampled_points
 end
 
-function normalize_points(points::Vector{Vector{Float64}}, min_x, max_x, min_y, max_y)
-    
-    normalized_points = Vector{Float64}[]
-    scaling_factor = maximum([max_x - min_x, max_y - min_y])
-    for p in points
-        norm_x = 2 * (p[1] - min_x) / scaling_factor - 1
-        norm_y = 2 * (p[2] - min_y) / scaling_factor - 1
-        push!(normalized_points, [norm_x, norm_y])
-    end
-    println("scaling factor is ", scaling_factor/1000, " km")
-
-    return hcat(normalized_points...)' |> collect, scaling_factor/1000
-end
-
-function rotate_points(points::Matrix{Float64}, angle_degrees)
+function rotate_points(points, angle_degrees)
     
     angle_rad = -deg2rad(angle_degrees)
     R = [cos(angle_rad) -sin(angle_rad);
          sin(angle_rad)  cos(angle_rad)]
 
-    return (R * points')' |> collect
+    rotated = (R * points')' |> collect
+    
+    # Recenter after rotation to ensure [0,0] center
+    mean_x = mean(rotated[:, 1])
+    mean_y = mean(rotated[:, 2])
+    rotated[:, 1] .-= mean_x
+    rotated[:, 2] .-= mean_y
+    
+    return rotated
 end
+
+function normalize_points(points::Vector{Vector{Float64}})
+    
+    normalized_points = Vector{Float64}[]
+    
+    xs = [p[1] for p in points]
+    ys = [p[2] for p in points]
+    min_x, max_x = extrema(xs)
+    min_y, max_y = extrema(ys)
+    
+    width = max_x - min_x
+    height = max_y - min_y
+    scaling_factor = maximum([width, height])
+    
+    center_x = (min_x + max_x) / 2
+    center_y = (min_y + max_y) / 2
+    
+    for p in points
+        norm_x = (p[1] - center_x) / (scaling_factor / 2)
+        norm_y = (p[2] - center_y) / (scaling_factor / 2)
+        push!(normalized_points, [norm_x, norm_y])
+    end
+
+    return hcat(normalized_points...)' |> collect, scaling_factor/2000
+end
+
 
 
 function process_feature(f, INPUT)
@@ -151,8 +186,11 @@ function process_feature(f, INPUT)
     minx, maxx, miny, maxy = get_bbx(coords)
 
     cloud = rejection_sampling(minx, maxx, miny, maxy, coords, INPUT.Target_number)
-    norm_cloud, scaling = normalize_points(cloud, minx, maxx, miny, maxy)
-    rotate_cloud = rotate_points(norm_cloud,INPUT.Rotate_angle)
+    
+    norm_cloud, scaling = normalize_points(cloud)
+    
+    rotate_cloud = rotate_points(norm_cloud, INPUT.Rotate_angle)
+    
     trackID = f.properties[:trackID]
 
     file = matopen("src/Stacker/parameters/$(trackID).mat", "w")
@@ -162,26 +200,20 @@ function process_feature(f, INPUT)
     return trackID, scaling
 end
 
-function batch_process_output!(INPUT,txtpath)
+function batch_process_output!(INPUT,path,Species)
     data = import_data(INPUT.JSONpath)
     scaling_factor = []
-    for specie in Species
-        features = select_patch(data, specie) |> sort_and_select
+    for s in Species
+        features = select_patch(data, s) |> sort_and_select
         for f in features
             trackID, scaling = process_feature(f, INPUT)
             push!(scaling_factor,(trackID, scaling))
         end
     end
 
-    open(txtpath,"w") do io
-    println(io, "TrackID\tScaling_Factor_km")
-
-    for (trackID, scaling) in scaling_factor
-        println(io, "$(trackID)\t$(scaling)")
-    end
-
-    end
+    CSV.write(path, DataFrame(scaling_factor))
 end
 
 Species = ["Seagrass", "Sand", "Macroalgae", "Microfilm", "Reef"]
-batch_process_output!(INPUT,txtPATH)
+S1 = ["Seagrass"]
+batch_process_output!(INPUT,csvPATH,Species)
