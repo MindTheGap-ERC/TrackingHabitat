@@ -17,7 +17,6 @@ function generate_roundshape_cloudpoint(npoints::Integer=ROUND_CLOUD_POINT_COUNT
     return hcat(radii .* cos.(angles), radii .* sin.(angles))
 end
 
-"""Generate the round cloud and save it in the MAT format used by STACKER."""
 function save_roundshape_cloudpoint(
     output_path::AbstractString=ROUND_CLOUD_OUTPUT;
     npoints::Integer=ROUND_CLOUD_POINT_COUNT,
