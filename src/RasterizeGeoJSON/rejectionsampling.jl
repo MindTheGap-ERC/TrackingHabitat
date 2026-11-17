@@ -17,6 +17,8 @@ end
 const PATH = "results/tracked_species.geojson"
 
 const csvPATH = "results/scaling_factor.csv"
+const outerCsvPATH = "results/scaling_factor_outer.csv"
+const PARAMETERS_DIR = normpath(joinpath(@__DIR__, "..", "Stacker", "parameters"))
 
 const TARGET_NUMBER = 8000
 
@@ -137,6 +139,20 @@ function rejection_sampling(min_x, max_x, min_y, max_y, coords, target_number)
     return sampled_points
 end
 
+function outer_rings(f)
+    rings = Vector{Vector{Tuple{Float64, Float64}}}()
+    if isa(f.geometry, GeoJSON.Polygon)
+        push!(rings, collect(f.geometry.coordinates[1]))
+    elseif isa(f.geometry, GeoJSON.MultiPolygon)
+        for polygon in f.geometry.coordinates
+            push!(rings, collect(polygon[1]))
+        end
+    else
+        error("Unsupported geometry type: $(typeof(f.geometry))")
+    end
+    return rings
+end
+
 function rotate_points(points, angle_degrees)
     
     angle_rad = -deg2rad(angle_degrees)
@@ -193,11 +209,61 @@ function process_feature(f, INPUT)
     
     trackID = f.properties[:trackID]
 
-    file = matopen("src/Stacker/parameters/$(trackID).mat", "w")
-    write(file, "cloudPointXYCoords", rotate_cloud)
-    close(file)
+    file_path = joinpath(PARAMETERS_DIR, "$(trackID).mat")
+    matopen(file_path, "w") do file
+        write(file, "cloudPointXYCoords", rotate_cloud)
+    end
 
     return trackID, scaling
+end
+
+function process_feature_outer(f, INPUT)
+    rings = outer_rings(f)
+    coords = reduce(vcat, rings)
+    minx, maxx, miny, maxy = get_bbx(coords)
+    # Keep the requested total point count, distributing points across
+    # components in proportion to their bounding-box areas.
+    component_areas = Float64[]
+    for ring in rings
+        ring_minx, ring_maxx, ring_miny, ring_maxy = get_bbx(ring)
+        push!(component_areas, (ring_maxx - ring_minx) * (ring_maxy - ring_miny))
+    end
+    if sum(component_areas) == 0
+        component_areas .= 1.0
+    end
+    allocations = floor.(Int, INPUT.Target_number .* component_areas ./ sum(component_areas))
+    for i in 1:(INPUT.Target_number - sum(allocations))
+        allocations[i] += 1
+    end
+    cloud = Vector{Float64}[]
+    for (ring, count) in zip(rings, allocations)
+        count == 0 && continue
+        ring_minx, ring_maxx, ring_miny, ring_maxy = get_bbx(ring)
+        append!(cloud, rejection_sampling(ring_minx, ring_maxx, ring_miny, ring_maxy, ring, count))
+    end
+    norm_cloud, scaling = normalize_points(cloud)
+    rotate_cloud = rotate_points(norm_cloud, INPUT.Rotate_angle)
+
+    trackID = string(f.properties[:trackID])
+    output_id = endswith(trackID, "_out") ? trackID : "$(trackID)_out"
+    file_path = joinpath(PARAMETERS_DIR, "$(output_id).mat")
+    matopen(file_path, "w") do file
+        write(file, "cloudPointXYCoords", rotate_cloud)
+    end
+    return output_id, scaling
+end
+
+function batch_process_outer_output!(INPUT, path, Species)
+    data = import_data(INPUT.JSONpath)
+    scaling_factor = []
+    for species in Species
+        features = select_patch(data, species) |> sort_and_select
+        for f in features
+            trackID, scaling = process_feature_outer(f, INPUT)
+            push!(scaling_factor, (trackID, scaling))
+        end
+    end
+    CSV.write(path, DataFrame(scaling_factor))
 end
 
 function batch_process_output!(INPUT,path,Species)
@@ -217,3 +283,4 @@ end
 Species = ["Seagrass", "Sand", "Macroalgae", "Microfilm", "Reef"]
 S1 = ["Seagrass"]
 batch_process_output!(INPUT,csvPATH,Species)
+batch_process_outer_output!(INPUT, outerCsvPATH, Species)

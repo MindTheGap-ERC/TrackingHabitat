@@ -7,7 +7,7 @@ using CSV
 # Load the data
 df_Abacos = XLSX.readtable("data/Abacos.xlsx","sum") |> DataFrame
 df_Joulters =XLSX.readtable("data/Joulters.xlsx","sum") |> DataFrame
-const AREA = 60
+const AREA = 100
 # Data preparartion
 df_Abacos_seagrass_1945 = filter(row -> row.v_class == "Seagrass" && row.v_area > AREA, df_Abacos) |> 
                           row -> log10.(row.v_area)
@@ -72,24 +72,24 @@ fig
 save("fig/seagrass_histograms.png", fig)
 
 # Data Edge preparartion
-eg_Abacos_seagrass_1945 = filter(row -> row.v_class == "Seagrass" && row.v_area > 60, df_Abacos) |> row -> row.v_length
+eg_Abacos_seagrass_1945 = filter(row -> row.v_class == "Seagrass" && row.v_area > AREA, df_Abacos) |> row -> row.v_length
 
 eg_Abacos_seagrass_2019 = filter(row -> !ismissing(row.m_class) &&
                                         !ismissing(row.m_area) &&
                                         row.m_class == "Seagrass" &&
-                                        row.m_area > 60,
+                                        row.m_area > AREA,
                                  df_Abacos) |> row -> row.m_length
 
 eg_Joulters_seagrass_1945 = filter(row -> !ismissing(row.v_class) &&
                                         !ismissing(row.v_area) &&
                                         row.v_class == "Seagrass" &&
-                                        row.v_area > 60,
+                                        row.v_area > AREA,
                                  df_Joulters) |> row -> row.v_length
 
 eg_Joulters_seagrass_2019 = filter(row -> !ismissing(row.m_class) &&
                                         !ismissing(row.m_area) &&
                                         row.m_class == "Seagrass" &&
-                                        row.m_area > 60,
+                                        row.m_area > AREA,
                                  df_Joulters) |> row -> row.m_length
 
 # ED calculation

@@ -22,13 +22,13 @@ core_facies_collection = ["f_core_78_3_7", "f_core_78_3_18", "f_core_78_10_13", 
 
 f_core_78_3_7 = [100, 103]
 
-f_core_78_3_18 = [100, 101, 103, 105, 103, 101, 103, 101]
+f_core_78_3_18 = [100, 101, 105, 103, 105, 101, 105, 101]
 
 f_core_78_10_13 = [100, 101]
 
 f_core_78_3_48 = [100, 103]
 
-f_core_2_43 = [100, 105, 103]
+f_core_2_43 = [100, 103, 105]
 
 # facies: combine all cores into a matrix
 facies = [f_core_78_3_7, f_core_78_3_18, f_core_78_10_13, f_core_78_3_48, f_core_2_43]#

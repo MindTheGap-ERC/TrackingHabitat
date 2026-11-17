@@ -8,55 +8,55 @@ using ZipFile
 
 const OUTPATH = "./data/FaciesMosaic.mat"
 
-const URL = "https://zenodo.org/records/20306840/files/Supplement.zip?download=1"
-const TARGET_MAT = "Supplement/S7_STACKER_input_and_result/Results/FaciesMosaic.mat"
-const OUTPATH = "src/Stacker/modelResults/FaciesMosaic.mat"
-const THRESHOLD = 0.001   # this number means no observational window applied. We also use 0.01, 0.05 and 0.1 for sensitivity test.
-function download_and_extract_mat(url::String, target_mat::String, output_path::String)
-    temp_zip = "temp_data.zip"
+# const URL = "https://zenodo.org/records/20306840/files/Supplement.zip?download=1"
+# const TARGET_MAT = "Supplement/S7_STACKER_input_and_result/Results/FaciesMosaic.mat"
+# const OUTPATH = "src/Stacker/modelResults/FaciesMosaic.mat"
+ const THRESHOLD = 0.02   # this number means no observational window applied. We also use 0.02, 0.05 and 0.1 for sensitivity test.
+# function download_and_extract_mat(url::String, target_mat::String, output_path::String)
+#     temp_zip = "temp_data.zip"
     
-    println("Downloading from Zenodo...")
-    Downloads.download(url, temp_zip)
+#     println("Downloading from Zenodo...")
+#     Downloads.download(url, temp_zip)
 
-is_zip = open(temp_zip, "r") do io
-        if eof(io) return false end
-        header = read(io, 2) # Read the first 2 bytes
-        return header == [0x50, 0x4b] 
-    end
+# is_zip = open(temp_zip, "r") do io
+#         if eof(io) return false end
+#         header = read(io, 2) # Read the first 2 bytes
+#         return header == [0x50, 0x4b] 
+#     end
 
-    if !is_zip
-        content = read(temp_zip, String)
-        rm(temp_zip)
-        println("First 100 chars of downloaded file: ", first(content, 100))
-        error("Downloaded file is NOT a zip. Check your Zenodo URL.")
-    end
+#     if !is_zip
+#         content = read(temp_zip, String)
+#         rm(temp_zip)
+#         println("First 100 chars of downloaded file: ", first(content, 100))
+#         error("Downloaded file is NOT a zip. Check your Zenodo URL.")
+#     end
 
-    zarchive = ZipFile.Reader(temp_zip)
-    found = false
-    try
-        for f in zarchive.files
-            if f.name == target_mat
-                println("Found $target_mat. Extracting...")
-                open(output_path, "w") do io
-                    write(io, read(f))
-                end
-                found = true
-                break
-            end
-        end
-    finally
-        close(zarchive)
-        rm(temp_zip)
-    end
+#     zarchive = ZipFile.Reader(temp_zip)
+#     found = false
+#     try
+#         for f in zarchive.files
+#             if f.name == target_mat
+#                 println("Found $target_mat. Extracting...")
+#                 open(output_path, "w") do io
+#                     write(io, read(f))
+#                 end
+#                 found = true
+#                 break
+#             end
+#         end
+#     finally
+#         close(zarchive)
+#         rm(temp_zip)
+#     end
 
-    if found
-        return matread(output_path)
-    else
-        error("File $target_mat not found inside the zip.")
-    end
-end
+#     if found
+#         return matread(output_path)
+#     else
+#         error("File $target_mat not found inside the zip.")
+#     end
+# end
 
-download_and_extract_mat(URL, TARGET_MAT, OUTPATH)
+# download_and_extract_mat(URL, TARGET_MAT, OUTPATH)
 
 data = matread("src/Stacker/modelResults/FaciesMosaic.mat")
 variables = keys(data)
@@ -165,21 +165,27 @@ function subcore!(ax, core_layers, core_facies,x_left,x_right)
     poly!(ax, rects, color = colors)
 end
 
-function draw_multiple_cores(layers, facies, core_coords, threshold)
+function draw_multiple_cores(layers, facies, core_coords, threshold = nothing)
     n_cores = length(core_coords)
-    fig = Figure(resolution = (210 * n_cores, 600))
+    fig = Figure(resolution = (180 * n_cores, 600))
+    axes = Axis[]
     for i in eachindex(core_coords)
         if i == 1
             ax = Axis(fig[1, i]; xlabel = "", ylabel = "Depth (m)", yreversed = false, xticks = ([], []))
         else
             ax = Axis(fig[1, i]; xlabel = "", ylabel = "", yreversed = false, xticks = ([], []))
         end
-        draw_sub_core!(ax, layers, facies, i, core_coords, threshold)
-        
+        push!(axes, ax)
+        if threshold === nothing
+            draw_sub_core!(ax, layers, facies, i, core_coords)
+        else
+            draw_sub_core!(ax, layers, facies, i, core_coords, threshold)
+        end
     end
+    linkyaxes!(axes...)
 
     facies_codes = [101, 103, 105]
-    facies_labels = ["ooidal grainstone", "ooidal packstone", "packstone"]
+    facies_labels = ["Ooidal grainstone", "Fine-peloid packstone", "Ooidal packstone"]
     legend_elements = [PolyElement(color = get_facies_color(code)) for code in facies_codes]
     Legend(fig[1, length(core_coords) + 1], legend_elements, facies_labels)
 
@@ -201,7 +207,7 @@ function plot_cross_section(layers, facies, y_position, threshold)
     end
 
     facies_codes  = [101, 102, 103, 105]
-    facies_labels = ["ooidal grainstone", "skeletal grainstone", "ooidal packstone", "packstone"]
+    facies_labels = ["Ooidal grainstone", "Skeletal grainstone", "Fine-peloid packstone", "Ooidal packstone"]
     legend_elements = [PolyElement(color = get_facies_color(code)) for code in facies_codes]
     Legend(fig[1, 2], legend_elements, facies_labels)
 
@@ -225,7 +231,7 @@ function plot_timeslice(facies_3d, layers_3d, timeslice_indices)
     end
     
     # facies_codes  = [101, 103, 105]
-    # facies_labels = ["ooidal grainstone", "ooidal packstone", "packstone"]
+    # facies_labels = ["Ooidal grainstone", "Fine-peloid packstone", "Ooidal packstone"]
     # legend_elements = [PolyElement(color = get_facies_color(code)) for code in facies_codes]
     # Legend(fig[1, n_slices + 1], legend_elements, facies_labels)
     return fig
@@ -252,6 +258,7 @@ function calculate_proportion_facies(core_layers, core_facies)
         end
         proportions[code] = thickness / total_thickness
     end
+    @show proportions
     return proportions
 end
 
@@ -271,9 +278,33 @@ function calculate_all_cores_proportions(layers, facies, core_coords)
     CSV.write("results/STACKER_cores_proportions.csv", DataFrame(all_props))
 end
 
+function calculate_section_proportions(layers, facies, y_position)
+    section_thickness = Dict{Int64,Float64}()
+    total_thickness = 0.0
+
+    for x_position in axes(layers, 1)
+        core_layers = layers[x_position, y_position, :]
+        core_facies = facies[x_position, y_position, :]
+        core_thickness = core_layers[end] - core_layers[1]
+        core_proportions = calculate_proportion_facies(core_layers, core_facies)
+
+        for (code, proportion) in core_proportions
+            section_thickness[code] = get(section_thickness, code, 0.0) +
+                                      proportion * core_thickness
+        end
+        total_thickness += core_thickness
+    end
+
+    proportions = Dict(code => thickness / total_thickness
+                       for (code, thickness) in section_thickness)
+
+    @show proportions
+    return proportions
+end
+
 
 fig = draw_multiple_cores(layers, reproj_facies, core_coords, THRESHOLD) 
 save("fig/STACKER_cores.png", fig)
-
 calculate_all_cores_proportions(layers, reproj_facies, core_coords)
+calculate_section_proportions(layers, reproj_facies, Y_POS)
 end
