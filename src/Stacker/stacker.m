@@ -500,29 +500,58 @@ function initializeGUI(gui, params, run, strata)
     end
 
     function strata = calculateFaciesDistributionMosaic(params, strata, iteration, sealevel)
-    % Populate the facies map for current iteration
+% Populate facies map using production-based competition
         
-        waterDepth = sealevel - strata.layers(:,:,iteration);
-        strata.facies(:,:,iteration) = zeros(params.gridCellsX, params.gridCellsY); % Initialise facies map for this iteration to zeros
+    waterDepth = sealevel - strata.layers(:,:,iteration);
+    
+    faciesCount = zeros(params.gridCellsX, params.gridCellsY, params.nFacies);
+    
+    for j = 1:params.nFaciesMosaicElements
+        for k = 1:params.nFaciesMosaicNumberOfCloudPoints
+            
+            x = strata.faciesMosaicElementX(j) / params.gridDx;
+            x = x + ((params.faciesMosaicElementpointsXY(j,k,1) * params.faciesMosaicElementRadius(j)) / params.gridDx);
+            x = floor(x);
+            
+            y = strata.faciesMosaicElementY(j) / params.gridDy;
+            y = y + ((params.faciesMosaicElementpointsXY(j,k,2) * params.faciesMosaicElementRadius(j)) / params.gridDy);
+            y = floor(y);
+            
+            if x > 0 && x <= params.gridCellsX && y > 0 && y <= params.gridCellsY && waterDepth(x,y) > 0.0
                 
-        for j = 1:params.nFaciesMosaicElements % loop to calculate for each facies mosaic element
-
-            for k = 1:params.nFaciesMosaicNumberOfCloudPoints % loop through the points in mosaic element j
+                faciesCode = params.faciesMosaicElementFaciesCode(j);
+                faciesCount(x,y,faciesCode) = faciesCount(x,y,faciesCode) + 1;
                 
-                x = strata.faciesMosaicElementX(j) / params.gridDx; % Convert mosaic element center point x coord from km to grid cell index
-                x = x + ((params.faciesMosaicElementpointsXY(j,k,1) * params.faciesMosaicElementRadius(j)) / params.gridDx); % Add cloud point x coord to center point coord
-                x = floor(x); % convert x coordinate to integer
-                
-                y = strata.faciesMosaicElementY(j) / params.gridDy; % Convert mosaic element center point y coord from km to grid cell index
-                y = y + ((params.faciesMosaicElementpointsXY(j,k,2) * params.faciesMosaicElementRadius(j)) / params.gridDy); % Add cloud point y coord to center point coord
-                y = floor(y); % convert y coordinate to integer
-                
-                if x > 0 && x <= params.gridCellsX && y > 0 && y <= params.gridCellsY && waterDepth(x,y) > 0.0
-                    strata.facies(x,y,iteration) = params.faciesMosaicElementFaciesCode(j);
-                end
             end
         end
     end
+    
+    strata.facies(:,:,iteration) = zeros(params.gridCellsX, params.gridCellsY);
+    
+    for x = 1:params.gridCellsX
+        for y = 1:params.gridCellsY
+            
+            bestFacies = 0;
+            bestValue = 0;
+            
+            for j = 1:params.nFacies
+                count = faciesCount(x,y,j);
+                
+                if count > 0
+                    value = params.deposRate(j);
+                    
+                    if value > bestValue
+                        bestValue = value;
+                        bestFacies = j;
+                    end
+                end
+            end
+            
+            strata.facies(x,y,iteration) = bestFacies;
+            
+        end
+    end
+end
 
     function faciesColourMap = createFaciesColourMap(params)
         
@@ -816,7 +845,7 @@ function initializeGUI(gui, params, run, strata)
                         
                     else % If not B&S assume constant production rate with depth, at specified rate for facies
                        
-                        onePointDeposThick = params.deposRate(faciesAtXY) * producersPerCell(x,y,faciesAtXY) * params.deltaT; % NB subsidence rate is already rate per My
+                        onePointDeposThick = params.deposRate(faciesAtXY)  * params.deltaT; % * producersPerCell(x,y,faciesAtXY)NB subsidence rate is already rate per My
                         strata.layers(x,y,iteration) = strata.layers(x,y,iteration-1) + onePointDeposThick;
                     end
                     
@@ -853,8 +882,8 @@ function initializeGUI(gui, params, run, strata)
         end
         
         for j = 1:params.nFacies
-            maxCount = max(max(producersPerCell(:,:,j))); % Find the maximum count in layer j, so max for facies j
-            producersPerCell(:,:,j) = producersPerCell(:,:,j) ./ maxCount; % normalise the facies count for layer j
+            maxCount = max(max(producersPerCell(:,:,j))); % Find the maximum count in layer j, so max for facies 
+            producersPerCell(:,:,j) = producersPerCell(:,:,j) ./ maxCount ; % normalise the facies count for layer j
         end
     end
 
@@ -888,6 +917,10 @@ function initializeGUI(gui, params, run, strata)
         plotBathymetryAndFacies(params, strata, iteration-1);
         fprintf('Done\n');
         
+        fprintf('drawing gifs...');
+        plotModelResultsgif(params, strata);
+        fprintf('Done\n');
+
         fprintf('Drawing dip section & chronostrat...');
         sectXPosition = round( params.gridCellsX / 2);
         drawDipSectionAndChronostrat(iteration-1, params, strata, sectXPosition); 
@@ -904,7 +937,7 @@ function initializeGUI(gui, params, run, strata)
             drawPolygonTrajectories(iteration-1, params, strata);
         end 
         fprintf('Done\n');
-        
+
 %         Code to plot initial facies mosaic condition with polygon trajectors for 100 iterations of run model
 %         clf
 %         plotBathymetryAndFacies(params, strata, 1);
@@ -912,10 +945,53 @@ function initializeGUI(gui, params, run, strata)
 
     end
 
+    function plotModelResultsgif(params, strata)
+        
+        fName = sprintf('modelResults/%s.mat', params.modelName);
+        load(fName, 'params', 'strata');
+        
+        iteration = params.totalEMT / params.deltaT;
+        
+        fprintf('Creating GIF of 3D bathymetry...\n');
+        
+        figure;
+        %set(gcf, 'Position', [100 100 1000 800]); % optional: bigger figure
+        
+        gifName = 'bathymetry.gif';
+        
+        for layerNumber = 1:1:iteration-1
+            
+            clf; % clear previous frame
+            
+            % --- draw your existing plot ---
+            plotBathymetryAndFacies(params, strata, layerNumber);
+            
+            %drawnow;
+            
+            % --- capture frame ---
+            frame = getframe(gcf);
+            im = frame2im(frame);
+            [imind, cm] = rgb2ind(im, 256, 'nodither');
+            
+            % --- write to GIF ---
+            if layerNumber == 1
+                imwrite(imind, cm, gifName, 'gif', ...
+                    'Loopcount', inf, 'DelayTime', 0.15);
+            else
+                imwrite(imind, cm, gifName, 'gif', ...
+                    'WriteMode', 'append', 'DelayTime', 0.15);
+            end
+            
+            fprintf('Frame %d/%d done\n', layerNumber, iteration-1);
+        end
+        
+        fprintf('GIF saved as %s\n', gifName);
+    end
+
     function plotBathymetryAndFacies(params, strata, layerNumber)
                 
         xcoVect = 0:params.gridDx:params.gridDx * (params.gridCellsX-1); % Define the x and y coordinate vectors for the model grid
-        ycoVect = 0:params.gridDy:params.gridDy * (params.gridCellsY-1);
+        ycoVect = 0: params.gridDy:params.gridDy * (params.gridCellsY-1); %
         [xcoGrid,ycoGrid] = meshgrid(xcoVect, ycoVect); % Create the whole grid xy coordinates
         elevationsToPlot = strata.layers(:,:,layerNumber).'; % Note because of how surf works, xy axes need to be transposed to plot correctly - annoying but necessary!
         coloursToPlot = createColourTripletMap(strata.faciesColourMap, strata.facies(:,:,layerNumber).');
@@ -931,7 +1007,7 @@ function initializeGUI(gui, params, run, strata)
         
         draw3DCrossSectionDip(layerNumber, params, strata, 1, 1); % Final 1 is 3d flag set to true
         draw3DCrossSectionDip(layerNumber, params, strata, params.gridCellsY-1, 1); % -1 because surf grid scaled from 0 not 1 Final 1 is 3d flag set to true
-        draw3DCrossSectionStrike(layerNumber, params, strata, params.gridCellsX-1, 1); % -1 because surf grid scaled from 0 not 1
+        draw3DCrossSectionStrike(layerNumber, params, strata, params.gridCellsX*params.gridDx, 1); % -1 because surf grid scaled from 0 not 1
         draw3DCrossSectionStrike(layerNumber, params, strata, 1, 1); % Final 1 is 3d flag set to true
         
         % Define the coordinates for the sea-level surface
@@ -940,9 +1016,9 @@ function initializeGUI(gui, params, run, strata)
         zco = [params.sealevelCurve(layerNumber), params.sealevelCurve(layerNumber), params.sealevelCurve(layerNumber), params.sealevelCurve(layerNumber)];
         patch(xco, yco, zco, [0 0.2 1.0], 'FaceAlpha',0.5); % Draw sea-level surface
 
-        if strcmp('FaciesMosaic', params.modelType) && layerNumber > 1 % only draw trajectories for mosaic option when model has run for at least one time step
-	         drawPolygonTrajectories(layerNumber - 1, params, strata);
-        end
+        % if strcmp('FaciesMosaic', params.modelType) && layerNumber > 1 % only draw trajectories for mosaic option when model has run for at least one time step
+	    %      drawPolygonTrajectories(layerNumber - 1, params, strata);
+        % end
         
         grid on;
         ylabel('Dip distance (y) (km)');
@@ -951,7 +1027,7 @@ function initializeGUI(gui, params, run, strata)
         titleStr = sprintf("Elapsed time %5.4f My", layerNumber * params.deltaT);
         title(titleStr);
         view(220,40); 
-        drawnow
+        %drawnow
     end
 
     function coloursToPlot = createColourTripletMap(colourMap, faciesMap)
@@ -1041,7 +1117,7 @@ function drawStrikeSectionAndChronostrat(iterations, params, strata, sectYPositi
    function draw3DCrossSectionDip(iterations, params, strata, sectPosition, flag3D)
         
         maxPts = params.gridCellsY; % No deposition polygon can be bigger than the whole grid *2, but *2 required for yco top and base
-        gridCellSize = params.gridDx;
+        gridCellSize = params.gridDy;
         
         for timeLoop = 2:iterations
             

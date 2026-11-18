@@ -4,8 +4,13 @@ using DataFrames
 using CSV
 using Plots
 using GeoMakie
+using CairoMakie
 export get_centroids, import_data
+using GMT
 filepath = "results/tracked_species.geojson"
+
+const target_species = "Reef"
+
 function import_data(file_path)
     data = ArchGDAL.read(file_path)
     Tabledata = DataFrame(ArchGDAL.getlayer(data, 0))
@@ -46,11 +51,11 @@ function calculate_distances(data)
     n = length(unique(data.trackID))
     distances = Union{Float64, Missing}[]
     for i in 1:n
-        if ismissing(data[i, "1945.0"]) || ismissing(data[i, "2019.0"])
+        if ismissing(data[i, "1945"]) || ismissing(data[i, "2019"])
         push!(distances, missing)
         else
-        point1 = data[i, "1945.0"]
-        point2 = data[i, "2019.0"]
+        point1 = data[i, "1945"]
+        point2 = data[i, "2019"]
         dist = euclidean(point1, point2)
         push!(distances, dist)
 
@@ -66,11 +71,11 @@ function calculate_directions(data)
     n = length(unique(data.trackID))
     directions = Union{Float64, Missing}[]
     for i in 1:n
-        if ismissing(data[i, "1945.0"]) || ismissing(data[i, "2019.0"])
+        if ismissing(data[i, "1945"]) || ismissing(data[i, "2019"])
             push!(directions, missing)
         else
-        point1 = data[i, "1945.0"]
-        point2 = data[i, "2019.0"]
+        point1 = data[i, "1945"]
+        point2 = data[i, "2019"]
         delta_y = point2[2] - point1[2]
         delta_x = point2[1] - point1[1]
         angle = atan(delta_y, delta_x) * (180 / π) + 180
@@ -82,16 +87,10 @@ end
 
 directions = calculate_directions(data)
 
-# open("results/seagrass_migration_data.txt", "w") do io
-#     for (dir, dist) in zip(directions, distances)
-#         println(io, "$dir $dist")
-#     end
-# end
-
 result = DataFrame(Direction = directions, Distance = distances)
 data = hcat(data, result)
-rename!(data, Symbol("1945.0") => :vintage)
-rename!(data, Symbol("2019.0") => :modern)
+rename!(data, Symbol("1945") => :vintage)
+rename!(data, Symbol("2019") => :modern)
 max_dist = maximum(distances)  
 
 species = unique(data.Habitat)
@@ -102,57 +101,20 @@ function extract_species_data(data::DataFrame, species_name::AbstractString)
     return dropmissing(result_df[:, [:trackID, :vintage, :Direction, :Distance]])
 end
 
-target_species = "Seagrass"
+
 extract_data = extract_species_data(data, target_species)
 
-open("results/$(target_species)_migration_data.txt", "w") do io
-    for (tag, dir, dist) in zip(extract_data.trackID, extract_data.Direction, extract_data.Distance)
+
+CSV.write("results/$(target_species)_migration_data.csv", DataFrame(trackID=extract_data.trackID, Direction=extract_data.Direction, Distance=extract_data.Distance))
         
-        println(io, "$tag $dir $dist")
-    end
+
+function plot_polar(tag, directions, distances)
+    f = Figure(resolution = (800, 800))
+    ax = PolarAxis(f[1,1]; title = tag)
+    CairoMakie.scatter!(ax, directions, distances; markersize = 20, color = :black, alpha = 1)
+    return f
 end
 
-fig = GMT.scatter(
-    distances, 
-    directions, 
-    limits = (0,360,0,max_dist), 
-    proj = :Polar,
-    title = "Sand migration distances and directions (1945-2019)",
-    show = false
-)
-
-
-function create_rose_data(directions, distances, nbins=18)
-    bin_width = 360 / nbins
-    bin_edges = 0:bin_width:360
-    bin_centers = bin_edges[1:end-1] .+ bin_width/2
-    
-    bin_sums = zeros(nbins)
-    for i in 1:length(directions)
-        bin_idx = min(ceil(Int, directions[i] / bin_width), nbins)
-        bin_idx = max(1, bin_idx)
-        bin_sums[bin_idx] += distances[i]
-    end
-     
-    return bin_centers, bin_sums
-end
-
-θ, r = create_rose_data(sand_data.Direction, sand_data.Distance, 18)
-θ_rad = deg2rad.(θ)
-
-θ_rad = vcat(θ_rad, θ_rad[1])
-r = vcat(r, r[1])
-Plots.plot(
-    θ_rad, r,
-    proj=:polar,
-    seriestype=:path,
-    fill=(0, 0.3, :orange),
-    linewidth=2,
-    linecolor=:orange,
-    legend=false,
-    size=(600, 600),
-    title="Migration  Diagram",
-    framestyle=:polar
-)
-
-savefig("results/Macroalgae_migration_rose_diagram.png")
+tag_species = target_species
+polar_fig = plot_polar(tag_species, extract_data.Direction, extract_data.Distance)
+save("results/$(tag_species)_migration_polar.png", polar_fig)

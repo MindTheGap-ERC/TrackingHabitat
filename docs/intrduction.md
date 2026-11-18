@@ -67,3 +67,17 @@ The parameters you could tweak:
 5. Species: the habitat types you would like to generate cloudpoints. 
 This file is able to carry out batch procesing.
 The result is written in MAT format. 
+
+## Plotting cores
+Located in Folder "src/PlottingCores'
+Three julia files are there, and the 'plottingcores.jl' is to generate plots for virtual cores from mat file, while the other two files are for the emipircal cores.
+
+## Plot the patch statistics
+Located in Folder "src/plot_patch_stats/plotting.jl"
+This file enables visualization of patch statistics, including the mterics used in the paper: NP, MPA, ED, etc.
+
+## Spatial Entropy Calculation
+Located in Folder "src/SpatialEntropyCal"
+Two files are presented. 
+'GridingShape.jl' is a file to compare the spatial entropy of original shapefile and the input cloud points into STACKER.
+'SpatialEntropy.jl' is a utility file has Spatial entropy functions, and also determine how this metric evolves with time.

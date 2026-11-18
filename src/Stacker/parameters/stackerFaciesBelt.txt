@@ -4,11 +4,11 @@ faciesBelts
 0.1								# grid cell spacing, x dimension, km
 0.1								# grid cell spacing, y dimension, km
 
-1.000								# model duration, My
-0.001								# model time step, My
+0.008								# model duration, My
+0.00008								# model time step, My
 parameters/initialTopographyShallowRampSmoothedNoise.txt		# initial topography filename
 20								# subdience rate, m per My
-parameters/sealevelCurveP1_0.300A1_5.0P2_0.082A2_2.0.txt	# sea-level curve filename
+parameters/sealevel_sin.txt	# sea-level curve filename
 1.0		# Tidal range, in meters. Facies 1 is assumed in random models to be intertidal
 5			# number of facies elements
 
